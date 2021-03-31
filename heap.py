@@ -1,4 +1,5 @@
 import heapq
+import itertools
 
 '''
 Sources used:
@@ -6,14 +7,23 @@ HW4 Dijkstra
 https://gist.github.com/Tetsuya3850/a271ba66f35460e1e244aacbe792576b
 '''
 
-# class Vertex(object):
-#     def __init__(self, id, key):
-#         self.id = id
-#         self.key = key
-#         self.position
 
-# class Edge(object):
-#     def __init__(self, u, v, weight):
+class Vertex(object):
+    ''' Vertex object for graph '''
+    idcount = itertools.count()
+
+    def __init__(self, key, id=None):
+        self.id = id or next(Vertex.idcount)
+        self.key = key
+
+    def __lt__(self, other):
+        return self.key < other.key
+
+    def __gt__(self, other):
+        return self.key > other.key
+
+    def __repr__(self):
+        return f'({self.id}: {self.key})'
 
 
 class MinHeap(object):
@@ -37,7 +47,7 @@ class MinHeap(object):
 
     def heapify_down(self):
         ''' downheap element '''
-        if len(self.heap) < 2: 
+        if len(self.heap) < 2:
             return
 
         item = 0
@@ -63,8 +73,9 @@ class MinHeap(object):
         self.heapify_down()
         return data
 
-    # def decreaseKey(self, node, val):
-    # TODO: decrease key - see HW4
+    def decreaseKey(self, vertex, val):
+        ''' TODO: decrease key - see HW4 '''
+        pass
 
     def show(self):
         print(self.heap)
@@ -73,21 +84,25 @@ class MinHeap(object):
         return len(self.heap)
 
 
-# class HeapqHeap(object):
-#     ''' wrapper class for heapq from Python standard library - used for benchmarking '''
+class HeapqHeap(object):
+    ''' Wrapper class for heapq from Python standard library - used for benchmarking '''
 
-#     def __init__(self):
-#         self.heap = []
+    def __init__(self):
+        self.heap = []
 
-#     def push(self, value):
-#         heapq.heappush(self.heap, value)
+    def push(self, value):
+        heapq.heappush(self.heap, value)
 
-#     def pop(self):
-#         ''' delete min '''
-#         return heapq.heappop(self.heap)
+    def pop(self):
+        ''' delete min '''
+        return heapq.heappop(self.heap)
 
-#     # def decreaseKey(self):
-#     #     ''' TODO: heapq doesn't have an implementation for this '''
+    def decreaseKey(self, vertex, value):
+        ''' TODO: heapq doesn't have an implementation for this '''
+        pass
 
-#     def __len__(self):
-#         return len(self.heap)
+    def show(self):
+        print(self.heap)
+
+    def __len__(self):
+        return len(self.heap)
