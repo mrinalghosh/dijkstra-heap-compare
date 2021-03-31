@@ -1,33 +1,104 @@
 import heapq
 import itertools
+import networkx as nx
+import matplotlib.pyplot as plt
 
 '''
 Sources used:
-HW4 Dijkstra
-https://gist.github.com/Tetsuya3850/a271ba66f35460e1e244aacbe792576b
+https://gist.github.com/Tetsuya3850/a271ba66f35460e1e244aacbe792576b - vanilla min-heap
+https://github.com/reinvald/Dijkstra-Visualizer - networkx
 '''
 
 
+class Edge(object):
+    def __init__(self, u, v, w):
+        self.u = u
+        self.v = v
+        self.w = w
+
+    def __repr__(self):
+        return f'{self.u}--{self.w}-->{self.v}'
+
+
 class Vertex(object):
-    ''' Vertex object for graph '''
+    ''' vertex object for graph representation '''
     idcount = itertools.count()
 
-    def __init__(self, key, id=None):
+    def __init__(self, key, id=None, distance=None):
+        ''' initialize vertex with provided key and unique ID unless specified '''
         self.id = id or next(Vertex.idcount)
         self.key = key
+        self.distance = float('inf')
 
     def __lt__(self, other):
+        ''' override < method '''
         return self.key < other.key
 
     def __gt__(self, other):
+        ''' override > method '''
         return self.key > other.key
 
     def __repr__(self):
-        return f'({self.id}: {self.key})'
+        ''' override output method - for debug '''
+        return f'<{self.id}: {self.key}>'
 
 
-class MinHeap(object):
-    ''' standard min-heap priority queue '''
+class Graph(object):
+    def __init__(self):
+        self.graph = {}
+
+    def addVertex(self, vertex):
+        self.graph[vertex.id] = self.graph.get(vertex.id, vertex)
+
+    def add_edge(self, edge):
+        pass
+
+    def show(self):
+        G = nx.DiGraph() # directed graph with self loops
+
+        for key in self.graph.keys(): # add all nodes to graph
+            G.add_node(key)
+
+        # TODO: add edges and show print weights
+
+        pos = nx.spring_layout(G) # shell layout - could be random, spectral_layout, spring_layout or circular_layout
+        nx.draw(G, pos, with_labels=True)
+
+        plt.draw()
+        plt.show()
+    
+    def __repr__(self):
+        return '\n'.join(f"{key}: {value}" for key, value in self.graph.items())
+
+
+class Heap(object):
+    ''' Generic heap class for inheritance '''
+
+    def __init__(self):
+        ''' initialize heap specific data structures '''
+        pass
+
+    def push(self, value):
+        ''' insert a new vertex into heap'''
+
+    def pop(self):
+        ''' delete minimum '''
+
+    def decreaseKey(self, vertex, key):
+        ''' decrease key and maintain heap '''
+        pass
+
+    def show(self):
+        ''' print heap in appropriate format '''
+        pass
+
+    def __len__(self):
+        ''' return number of elements in heap'''
+        pass
+
+
+class MinHeap(Heap):
+    ''' vanilla min-heap priority queue '''
 
     def __init__(self):
         ''' maintain heap with underlying list - O(1) append and delete '''
@@ -66,14 +137,14 @@ class MinHeap(object):
 
     def pop(self):
         if not self.heap:
-            return None  # Change this to false if necessary
+            return None
 
         self.heap[0], self.heap[-1] = self.heap[-1], self.heap[0]
         data = self.heap.pop()
         self.heapify_down()
         return data
 
-    def decreaseKey(self, vertex, val):
+    def decreaseKey(self, vertex, key):
         ''' TODO: decrease key - see HW4 '''
         pass
 
@@ -84,8 +155,8 @@ class MinHeap(object):
         return len(self.heap)
 
 
-class HeapqHeap(object):
-    ''' Wrapper class for heapq from Python standard library - used for benchmarking '''
+class HeapqHeap(Heap):
+    ''' wrapper class for heapq from Python standard library - used for benchmarking '''
 
     def __init__(self):
         self.heap = []
