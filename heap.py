@@ -2,6 +2,7 @@ import heapq
 import itertools
 import networkx as nx
 import matplotlib.pyplot as plt
+from math import frexp
 
 '''
 Sources used:
@@ -153,6 +154,79 @@ class MinHeap(Heap):
 
     def __len__(self):
         return len(self.heap)
+
+
+class FibTree:
+    ''' Fibonacci tree '''
+
+    def __init__(self, value):
+        self.value = value
+        self.child = []
+        self.order = 0
+
+    def append_tree(self, t):
+        self.child.append(t)
+        self.order += 1
+
+
+class FibHeap(Heap):
+    ''' Fibonacci heap priority queue '''
+
+    def __init__(self):
+        self.trees = []
+        self.least = None
+        self.count = 0
+    
+    def insert(self, value):
+        new_tree = FibTree(value)
+        self.trees.append(new_tree)
+        if (self.least is None or value < self.least.value):
+            self.least = new_tree
+        self.count += 1
+
+    def get_min(self):
+        if self.least is None:
+            return None
+        return self.least.value
+
+    def extract_min(self):
+        smallest = self.least
+        if smallest is not None:
+            for child in smallest.child:
+                self.trees.append(child)
+            self.trees.remove(smallest)
+            if self.trees == []:
+                self.least = None
+            else:
+                self.least = self.trees[0]
+                self.merge()
+            self.count -= 1
+            return smallest.value
+
+    def merge(self):
+        # Floor log
+        aux = (frexp(self.count)[1]) * [None]
+
+        while self.trees != []:
+            x = self.trees[0]
+            order = x.order
+            self.trees.remove(x)
+            while aux[order] is not None:
+                y = aux[order]
+                if x.value > y.value:
+                    x, y = y, x
+                x.append_tree(y)
+                aux[order] = None
+                order += 1
+            aux[order] = x
+        
+        self.least = None
+        for k in aux:
+            if k is not None:
+                self.trees.append(k)
+                if (self.least is None or k.value < self.least.value):
+                    self.least = k
+
 
 
 class HeapqHeap(Heap):
