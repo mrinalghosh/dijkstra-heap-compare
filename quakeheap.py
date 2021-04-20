@@ -274,6 +274,8 @@ class QuakeHeap(Heap):
         addenode2 = None
         if(node == None):
             return
+        #decrement if successful traversal down a node a level, we will be deleting the previous levels
+        self.numv[currheight] -= 1
         if(currheight == targetlevel):
             if(node.left is not None):
                 node.left.parent = None
@@ -315,6 +317,8 @@ class QuakeHeap(Heap):
         for i in range(level, len(self.trees)):
             for tree in self.trees[i]:
                 self.DFS_delete(i, level, tree.root)
+                #within DFS Delete we create new trees, delete the original tree from list
+                self.trees[i].remove(tree)
         self.merge()
 
 
