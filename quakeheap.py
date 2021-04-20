@@ -99,7 +99,7 @@ class TournamentTree:
 
 class QuakeHeap(Heap):
     def __init__(self, vertex: Vertex = None):
-        # used for seismic operation
+        # invariant used for seismic operation
         self.alpha = 3/4
         # 2d list of trees, outer index corresponds to height of trees
         # inner lists are list of TournamentTrees
@@ -133,8 +133,10 @@ class QuakeHeap(Heap):
             self.trees.append([])
         self.trees[tree.height].append(tree)
 
- # link two trees during a "recursive" merge
-    # assumes equal height
+    '''
+    link two trees during a "recursive" merge
+    assumes equal height
+    '''
 
     def link(self, tree1: TournamentTree, tree2: TournamentTree):
         # link trees
@@ -223,7 +225,10 @@ class QuakeHeap(Heap):
                 # see which side current node came from
                 # cut the other side
                 self.numv[heightcount] -= 1
+                '''
                 #!check for seismic operation
+                N(i+1) must be less than or equal to alpha * N(i)
+                '''
                 if((heightcount+1 < len(self.numv)) and (self.numv[heightcount+1]/self.numv[heightcount] > self.alpha)):
                     quake_needed = True
                     quake_level = heightcount+1
@@ -267,7 +272,7 @@ class QuakeHeap(Heap):
         if(quake_needed):
             self.seismicEvent(quake_level)
 
-    '''performs the quake operation, removing all the nodes at level "level" and above'''
+    '''performs DFS during quake operation, removing all the nodes at level "level" and above'''
 
     def DFS_delete(self, currheight, targetlevel, node):
         if(node == None):
@@ -283,7 +288,7 @@ class QuakeHeap(Heap):
                 addnode = node.left
             # add to tree list
             n = TournamentTree(addnode, clone=True,
-                                isvertex=addnode.isvertex)
+                               isvertex=addnode.isvertex)
             n.height = currheight-1
             n.root.vertex.highclonelevel = n.height
             n.root.vertex.highestclone = n.root
@@ -293,6 +298,8 @@ class QuakeHeap(Heap):
         else:
             self.DFS_delete(currheight-1, targetlevel, node.left)
             self.DFS_delete(currheight-1, targetlevel, node.right)
+
+    '''perform quake operation'''
 
     def seismicEvent(self, level):
         print("QUAKKKEEEEEEEEEEE")
