@@ -21,11 +21,14 @@ class Vertex(object):
         self.name = name or next(Vertex.uidc)
         self.distance = distance  # key for priority queues
         self.neighbors = {}
-        self.pred = None
+        self.parent = None
         self.predweight = None
 
     def addNeighbor(self, v, w):
+        # checks if neighbour weight already exists else w
         self.neighbors[v] = self.neighbors.get(v, w)
+
+    ''' comparison methods for heap '''
 
     def __lt__(self, other):
         ''' override < method '''
@@ -48,8 +51,8 @@ class Vertex(object):
         return self.distance == other.distance
 
     def __repr__(self):
-        ''' override output method - for debug '''
-        return f'{self.distance}'
+        ''' output method - for debug '''
+        return f'({self.name}: {self.distance})'
 
 
 class Graph(object):
@@ -57,7 +60,7 @@ class Graph(object):
         self.graph = {}
 
     def addVertex(self, vertex):
-        # check if in dict else add vertex to dict
+        # check if in dict else add vertex to dict {key: name, value: vertex}
         self.graph[vertex.name] = self.graph.get(vertex.name, vertex)
 
     def addEdge(self, u, v, w):
@@ -85,24 +88,29 @@ class Graph(object):
     def Dijkstra(self, src, heap):
         ''' pass in source ID and Heap object of choice '''
 
-        # initialize
+        # initialize source distance as 0; build minheap of unvisited vertices
         self.graph[src].distance = 0
         for k, v in self.graph.items():
-            heap.insert(v) # insert each vertex object into heap
+            heap.insert(v)  # insert each vertex object into heap
 
         while len(heap) > 0:
             current = heap.peek()
             for v, w in current.neighbors.items():
                 if self.graph[v].distance > current.distance + w:
-                    self.graph[v].distance = current.distance + w
+                    # THIS DOESN'T WORK HELP
+                    heap.decreaseKey(self.graph[v], current.distance + w)
+                    # self.graph[v].distance = current.distance + w
                     self.graph[v].parent = current.name
                     self.graph[v].predweight = w
             heap.deleteMin()
+            heap.show()
+
 
         for u, v in self.graph.items():
-            print(f'shortest distance( {str(src)}, {str(u)} ) = {str(v.distance)}')
+            print(
+                f'shortest distance( {str(src)}, {str(u)} ) = {str(v.distance)}')
 
-        """ TODO: finish Dijkstra - gives wrong results for 0->1 """
+        ''' TODO: finish Dijkstra - gives wrong results for 0->1 '''
 
     def __repr__(self):
         return '\n'.join(f'{key}: {value}' for key, value in self.graph.items())

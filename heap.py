@@ -9,11 +9,11 @@ class Heap(object):
         raise NotImplementedError
 
     def peek(self):
-        ''' delete minimum '''
+        ''' see minimum without deletion '''
         raise NotImplementedError
 
     def deleteMin(self):
-        ''' see minimum '''
+        ''' delete minimum '''
         raise NotImplementedError
 
     def decreaseKey(self, vertex, key):

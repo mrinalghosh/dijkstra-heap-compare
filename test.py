@@ -5,14 +5,14 @@ from graph import Graph, Vertex
 def testGraph():
     g = Graph()
     for i in range(10):
-        g.addVertex(Vertex(name=i, distance=100-i))
+        g.addVertex(Vertex(name=i))
     print(g)
     g.show()
 
 
 def testHeap(heap=None):
     h = heap or MinHeap()
-    V = [Vertex(name=i, distance=10-i) for i in range(10)]
+    V = [Vertex(name=f'v{i}') for i in range(10)]
     for v in V:
         h.insert(v)
     h.show()
@@ -26,7 +26,7 @@ def testDijkstra(graph=None, heap=None, show=False):
     h = heap or MinHeap()
     g = graph or Graph()
     for i in range(10):
-        g.addVertex(Vertex(name=i, distance=i))
+        g.addVertex(Vertex(name=i))
     for i in range(10):
         g.addEdge(u=i, v=(i+1) % 10, w=2) # make linear cycle graph
 
@@ -40,6 +40,6 @@ if __name__ == '__main__':
 
     # testHeap(HeapqHeap())
     # testHeap()
-    testDijkstra(show=True)
+    testDijkstra(show=False)
 
     # testGraph()
