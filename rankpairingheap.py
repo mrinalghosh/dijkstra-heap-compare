@@ -7,13 +7,12 @@ Tasks:
 
 1. Handle multiple same keys                X
 2. decrease key
-    - parent set during compression
+    - parent set during compression         X
 3. delete min                               X
 4. integrate with vertex
 5. clean up
 6. return key or vertex from delete_min?
 '''
-
 
 class HalfTreeNode:
     ''' class for root/internal nodes - can be merged into vertex '''
@@ -21,8 +20,7 @@ class HalfTreeNode:
     def __init__(self, key):
         self.rank = 0
         self.key = key
-        self.next = self.prev = None  # root-list nav
-        self.parent = self.left = self.right = None  # half-tree nav
+        self.next = self.prev = self.parent = self.left = self.right = None
 
     def __repr__(self):
         s = f'(R{self.rank}) '
@@ -41,13 +39,13 @@ class RankPairingHeap(Heap):
         ''' initialize empty heap '''
         self.min = None
         self.count = 0
-        self.nodes = {}  # debug
+        # self.nodes = {}  # debug
 
     def insert(self, key):
         ''' add singleton to root-list '''
         ht = HalfTreeNode(key)
 
-        self.nodes[key] = ht  # debug
+        # self.nodes[key] = ht  # debug
 
         if self.count == 0:
             self.min = ht.next = ht.prev = ht
@@ -68,33 +66,34 @@ class RankPairingHeap(Heap):
 
     def show(self, verbose=False, forward=True):
         ''' debug print utility - verbose prints {previous-self-next} '''
+        if self.count == 0:
+            raise ValueError('RankPairingHeap empty')
+            return
+
+        v = self.min
+        for _ in range(self.count):
+            if verbose:
+                print(f'{v.key}: {v.prev}, {v}, {v.next}')
+            else:
+                print(f'{v.key}', end=' ')
+            v = v.next if forward else v.prev
+
+        print(f'[min-key={self.min.key}, count={self.count}]\n')
+
         # if self.count == 0:
         #     print('Rank-pairing heap empty')
         #     return
 
-        # v = self.min
-        # for _ in range(self.count):
-        #     if verbose:
-        #         print(f'{v.key}: {v.prev}, {v}, {v.next}')
-        #     else:
-        #         print(f'{v.key}', end=' ')
-        #     v = v.next if forward else v.prev
+        # for key, node in self.nodes.items():  # debug
+        # print(f'{key} : {node}')        # debug
 
         # print(f'[min-key={self.min.key}, count={self.count}]\n')
-
-        if self.count == 0:
-            print('Rank-pairing heap empty')
-            return
-
-        for key, node in self.nodes.items():  # debug
-            print(f'{key} : {node}')        # debug
-
-        print(f'[min-key={self.min.key}, count={self.count}]\n')
 
     def merge(self, heap):
         ''' merge root lists and update minimum '''
         if not self.min or not heap.min:
             self.min = self.min or heap.min
+            self.count = max(self.count, heap.count)
             return
 
         ''' conatenate DLL of roots '''
@@ -110,8 +109,7 @@ class RankPairingHeap(Heap):
     def peek(self):
         ''' return minimum key '''
         if self.count == 0:
-            print('Rank-pairing heap empty - cannot peek')
-            return None
+            raise ValueError('Cannot peek: RankPairingHeap is empty')
         return self.min.key
 
     def compress(self):
@@ -119,7 +117,7 @@ class RankPairingHeap(Heap):
 
         rankdict = defaultdict(lambda: [])  # {rank : list of roots}
 
-        node = self.min
+        node = self.min.next
         while node != self.min:
             rankdict[node.rank].append(node)
             node = node.next
@@ -146,11 +144,10 @@ class RankPairingHeap(Heap):
 
     def delete_min(self):
         ''' pop minimum key vertex and return value '''
-        del self.nodes[self.min.key]  # debug
+        # del self.nodes[self.min.key]  # debug
 
         if self.count == 0:
-            print('Rank-pairing heap empty - no min to delete')
-            return None
+            raise ValueError('Cannot delete_min: RankPairingHeap is empty')
 
         if self.count == 1:
             minkey = self.min.key
@@ -187,17 +184,45 @@ class RankPairingHeap(Heap):
     def decrease_key(self, node, key):
         ''' decrement specified node.key absolutely to key '''
 
-        # assuming vertex passed in (integrated with Vertex class) -
-        # or some kind of cleverer inheritance system where we convert to inherited nodes from a vertex base class
-        # and main can pass in the parent for comparison - COULD use a dictionary for {parent-Vertex: child-Custom} to get object
+        
 
-        ''' remove node and L subtree to new half-tree '''
-        # TODO: need to know which half-tree the node is under
+        # TODO: need to integrate with Vertex to have object passed in correctly
+
+        if key >= node.key:
+            raise ValueError('Cannot decrease key with value >= current value')
+
         node.key = key
 
-        ''' replace node in parent with previous R child '''
-        ''' update min '''
+        ''' remove node and L subtree to new half-tree 
+        replace node in parent with node's previous R child '''
+
+        node.parent.left = node.right
+        node.right = None
+
+        ''' relink and update min '''
+        if self.min.key > key:  # first
+            self.min.prev, node.prev, node.next = node, self.min.prev, self.min
+            node.prev.next = self.min = node
+        else:  # second
+            self.min.next, node.next, node.prev = node, self.min.next, self.min
+            node.next.prev = node
+
         ''' update ranks for previous tree node was in '''
+        p = node.parent
+        while p:
+            if not p.left and not p.right:  # leaf
+                p.rank = 0
+            elif not p.parent:  # root
+                if p.left:
+                    p.rank = p.left.rank + 1
+                break
+            else:
+                if abs(p.left.rank - p.right.rank) > 1:
+                    p.rank = max(p.left.rank, p.right.rank)
+                else:
+                    p.rank = max(p.left.rank, p.right.rank) + 1
+
+            p = p.parent
 
     def __len__(self):
         ''' number of elements currently in heap '''

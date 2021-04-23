@@ -1,10 +1,10 @@
 from rankpairingheap import RankPairingHeap
 import random
 
-n, repeats = 10, 1
-# testcase = [i for i in range(n) for _ in range(repeats)]
+n, repeats = 1000, 3
+testcase = [i for i in range(n) for _ in range(repeats)]
 # testcase = [i for i in range(n, 0, -1) for _ in range(repeats)] # negative range
-testcase = [1,-100,-1,3]
+# testcase = [1,-100,-1,3]
 
 
 def test_insert(n=5):
@@ -36,20 +36,32 @@ def test_delete_min(elements=testcase):
     for element in elements:
         h.insert(element)
 
-    h.show()
-
     for _ in elements:
         pops.append(h.delete_min())
-        h.show()
-
-    # print(pops)
 
     diff = sum(i != j for i, j in zip(pops, sorted(elements)))
 
     if diff == 0:
-        print('(delete_min) PASSED - all deletes in correct order')
+        print('(delete_min) PASSED - all delete_min in correct order')
     else:
-        print(f'(delete_min) FAILED - {diff} deletes wrong')
+        print(f'(delete_min) FAILED - {diff} delete_min were wrong')
+
+def test_decrease_key(elements=testcase):
+    random.shuffle(elements)
+    h = RankPairingHeap()
+    pops = []
+
+    for element in elements:
+        h.insert(element)
+
+
+    diff = sum(i != j for i, j in zip(pops, sorted(elements)))
+
+    if diff == 0:
+        print('(decrease_key) PASSED - all decrease_key in correct order')
+    else:
+        print(f'(decrease_key) FAILED - {diff} decrease_key were wrong')
+
 
 
 if __name__ == '__main__':
