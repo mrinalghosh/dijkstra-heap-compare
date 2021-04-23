@@ -2,6 +2,15 @@ import math
 from heap import Heap
 from collections import defaultdict
 
+'''
+Tasks:
+
+1. Handle multiple same keys    X
+2. decrease key
+3. 
+
+'''
+
 
 class HalfTreeNode:
     ''' class for root-list / internal nodes '''
@@ -14,10 +23,10 @@ class HalfTreeNode:
 
     def __repr__(self):
         s = f'(R{self.rank}) '
-        s += f'l{self.left.key} ' if self.left else 'l- '
-        s += f'r{self.right.key} ' if self.right else 'r- '
-        s += f'p{self.prev.key} ' if self.prev else 'p- '
-        s += f'n{self.next.key} ' if self.next else 'n- '
+        s += f' l{self.left.key}' if self.left else ' l-'
+        s += f' r{self.right.key}' if self.right else ' r-'
+        s += f' p{self.prev.key}' if self.prev else ' p-'
+        s += f' n{self.next.key}' if self.next else ' n-'
         return s
 
 
@@ -28,7 +37,7 @@ class RankPairingHeap(Heap):
         ''' initialize empty heap - data structure is circular DLL with head at min '''
         self.min = None  # head of DLL
         self.count = 0  # number of nodes
-        self.nodes = {}  # for debug ONLY
+        # self.nodes = {}  # for debug ONLY
 
     def insert(self, key):
         ''' add singleton to root-list - O(1) '''
@@ -49,13 +58,13 @@ class RankPairingHeap(Heap):
                 self.min.next, ht.next, ht.prev = ht, self.min.next, self.min
                 ht.next.prev = ht
 
-        self.nodes[ht.key] = ht
+        # self.nodes[ht.key] = ht
 
         self.count += 1
 
-    def print_nodes(self):
-        for _, node in self.nodes.items():
-            print(f'{node}')
+    # def print_nodes(self):
+        # for _, node in self.nodes.items():
+            # print(f'{node}')
 
     def show(self, verbose=False, forward=True):
         ''' debug output - verbose prints {previous-self-next} nodes '''
@@ -103,125 +112,89 @@ class RankPairingHeap(Heap):
     def compress(self):
         ''' merge roots of equal rank until no two roots have equal rank - O(log n) but O(1) amortized '''
 
-        ''' populate dictionary with list of roots by rank '''
+        ''' populate dict with list of roots by rank '''
         rankdict = defaultdict(lambda: [])
         node = self.min
 
-        # iterate over rootlist not number of nodes left
+        # iterate over rootlist
         while node != self.min:
             rankdict[node.rank].append(node)
             node = node.next
-
-        # for _ in range(self.count):
-        #     rankdict[node.rank].append(node)
-        #     node = node.next
 
         ''' recursively merge roots - since looking at all - select a new minimum now '''
         for rank in range(int(math.log(self.count, 2)) + 1):  # this errors out - the DLL created is not correct
             mergelist = rankdict[rank]
 
-            for _ in range(0, len(mergelist)-1, 2):  # pop pairs - leaves 0/1
-                A, B = mergelist.pop(), mergelist.pop()
+            for _ in range(0, len(mergelist)-1, 2):  # pop pairs
+                lg, sm = mergelist.pop(), mergelist.pop()
 
-                if A.key > B.key:
-                    B.left, A.right = A, B.left  # build half-tree
-                    A.prev.next, A.next.prev = A.next, A.prev  # B inplace and close hole for A
-                    A.next = A.prev = None
-                    B.rank += 1
-                    # update dict for recursive compression
-                    rankdict[B.rank].append(B)
-                    if B.key < self.min.key:  # update true self.min
-                        self.min = B
-                else:
-                    A.left, B.right = B, A.left
-                    B.prev.next, B.next.prev = B.next, B.prev  # A inplace and close hole for B
-                    B.next = B.prev = None
-                    A.rank += 1
-                    rankdict[A.rank].append(A)
-                    if A.key < self.min.key:
-                        self.min = A
+                if lg.key < sm.key: # lg is actually smaller
+                    sm, lg = lg, sm
 
-            # print(rankdict)
+                sm.left, lg.right = lg, sm.left  # build half-tree with sm as root
+                lg.prev.next, lg.next.prev = lg.next, lg.prev  # sm inplace - close lg
+                lg.next = lg.prev = None
+                sm.rank += 1
+                
+                rankdict[sm.rank].append(sm) # carry in dict
+
+                if sm.key < self.min.key:  # update self.min
+                    self.min = sm
 
     def delete_min(self):
         if self.count == 0:
             print('Rank-pairing heap empty - no min to delete')
             return None
 
-        min_key = self.min.key  # store return value
+        if self.count == 1:
+            minkey = self.min.key
+            # del self.nodes[self.min.key]
+            self.min, self.count = None, 0
+            return minkey
+
+        minkey = self.min.key  # store return value
 
         ''' add right spine to root-list '''
-        node = self.min.left # can't update self.min.left to None object
+        node = self.min.left  # can't update self.min.left to None object
 
         while node:
             self.min.next, node.next = node, self.min.next
             node.prev, node.next.prev = self.min, node
             node = node.right
 
-        print(f'root-list w/ right spine:\n{self.nodes.items()}\n') # WORKS
+        #debug
+        # print(f'root-list w/ right spine:\n{self.nodes.items()}')
+        # oldmin = self.min # debug
 
         ''' find new min in root-list and unlink old '''
-
         
-        # may need to still errorcheck 0/1...
-        self.min.next.prev , self.min.prev.next = self.min.prev, self.min.next
-        node, self.min = self.min, self.min.next
-
-        del self.nodes[node.key] # debug
-
-        ''' find new min '''
+        node, newkey = self.min.next, float('inf')
         while node != self.min:
-            if node.key < self.min.key:
-                new_min = node
+            if node.key < newkey:
+                newmin = node
+                newkey = node.key
             node = node.next
 
-        self.min = new_min
+        # unlink, reassign self.min and delete old
+        self.min.next.prev, self.min.prev.next = self.min.prev, self.min.next
 
-        print(f'root-list w/ min removed:\n{self.nodes}\n')
+        # assign self.min to newmin
+        self.min = newmin
 
+        # # debug
+        # del self.nodes[oldmin.key]
+        # print(f'root-list w/ min removed:\n{self.nodes}')
 
         ''' compress - merge roots of equal rank until all ranks unique '''
         self.compress()
 
-        # print(f'root-list after compression:\n{self.nodes}\n')
+        self.count -= 1
+        return minkey
 
-        return min_key
+        def decrease_key(self, vertex, key):
 
-        ''' # store key to return, node to delete
-        min_key, min_node = self.min.key, self.min '''
 
-        ''' delete root - update dll to skip self.min '''
 
-        # self.count -= 1  # decrement count
-
-        # if self.count == 0:  # heap will be emptied
-        #     self.min = None
-
-        # elif self.count == 1:  # heap will only have one node
-        #     self.min = self.min.left if self.min.next == self.min else self.min.next
-        #     self.min.next = self.min.prev = self.min
-
-        # else:  # multiple nodes remain in one or more half-trees
-
-        #     # make gap in DLL - if only one root left this is bad
-        #     self.min.next.prev, self.min.prev.next = self.min.prev, self.min.next
-        #     # this has to be wrong when there's only one tree left - otherwise check if only one tree
-        #     self.min = self.min.next  # idk just assign it to next node still in root-list
-
-        #     ''' cut edges along right spine and add to root list '''
-        #     ht = self.min.left
-        #     while ht:
-        #         # insert into second position in root-list
-        #         ht.next, ht.prev = self.min.next, self.min
-        #         self.min.next, ht.next.prev = ht, ht
-        #         ht = ht.right  # move down spine
-
-        #     print(f'\nBefore compress - nodelist:\n{self.nodes}')
-
-        #     ''' compress - merge roots of equal rank until all ranks unique '''
-        #     self.compress()
-
-        # self.remove(min_node)  # wrong min kept sometimes after compression
-        # return min_key
-
-        # def decreaseKey(self, vertex, key):
+        def __len__(self):
+            ''' number of elements currently in heap '''
+            return self.count
