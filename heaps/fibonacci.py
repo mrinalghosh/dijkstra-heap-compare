@@ -1,17 +1,4 @@
-from graph_util.graph import Vertex
 from heaps.base import Heap
-
-
-class FibTree(Vertex):
-    """Vertex Object for Fibonacci Heap."""
-
-    def __init__(self, distance=float("inf"), order=0):
-        super().__init__(distance)
-        self.order = order
-
-    def append(self, t):
-        self.child.append(t)
-        self.order += 1
 
 
 class FibHeap(Heap):
@@ -46,7 +33,7 @@ class FibHeap(Heap):
         return node
 
     # Iterate through a doubly linked list
-    def iterate(self, head = None):
+    def iterate(self, head=None):
         if head is None:
             head = self.root_list
         current = head
@@ -203,7 +190,7 @@ class FibHeap(Heap):
                     smallest = x
             return smallest
 
-    def print(self, head = None):
+    def print(self, head=None):
         if self.root_list is not None:
             count = 0
             for heap in self.iterate():
