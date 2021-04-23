@@ -28,7 +28,7 @@ class FibHeap(Heap):
     # Pointer to element of doubly linked root list
     root_list = None
     # Pointer to node with minimum element on heap
-    min_node = Node(None, None)
+    min_node = None
     # Num nodes in heap
     total_nodes = 0
 
@@ -40,7 +40,7 @@ class FibHeap(Heap):
         node.left = node.right = node
         self.merge_with_root_list(node)
         # Update min if needed
-        if self.min_node is not None or node.key < self.min_node.key:
+        if self.min_node is None or node.key < self.min_node.key:
             self.min_node = node
         self.total_nodes += 1
         return node
