@@ -1,5 +1,6 @@
 import math
 from heap import Heap
+from graph_util.graph import Vertex
 from collections import defaultdict
 
 '''
@@ -14,10 +15,11 @@ Tasks:
 6. return key or vertex from delete_min?
 '''
 
-class HalfTreeNode:
+class HalfTree(Vertex):
     ''' class for root/internal nodes - can be merged into vertex '''
 
     def __init__(self, key):
+        super().__init__(key)
         self.rank = 0
         self.key = key
         self.next = self.prev = self.parent = self.left = self.right = None
@@ -43,7 +45,7 @@ class RankPairingHeap(Heap):
 
     def insert(self, key):
         ''' add singleton to root-list '''
-        ht = HalfTreeNode(key)
+        ht = HalfTree(key)
 
         # self.nodes[key] = ht  # debug
 
