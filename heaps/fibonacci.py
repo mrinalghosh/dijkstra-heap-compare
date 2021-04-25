@@ -1,4 +1,5 @@
 from heaps.base import Heap
+from graph_util.graph import Vertex 
 
 
 class FibHeap(Heap):
