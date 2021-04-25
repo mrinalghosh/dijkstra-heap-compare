@@ -1,5 +1,4 @@
 from heaps.base import Heap
-from graph_util.graph import Vertex 
 
 
 class FibHeap(Heap):
@@ -19,6 +18,9 @@ class FibHeap(Heap):
     min_node = None
     # Num nodes in heap
     total_nodes = 0
+
+    def __len__(self):
+        return self.total_nodes
 
     def find_min(self) -> Node:
         return self.min_node

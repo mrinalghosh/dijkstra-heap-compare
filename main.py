@@ -1,16 +1,13 @@
-# import matplotlib.pyplot as plt
-# import numpy as np
-from heaps.fibonacci import FibHeap
 import sys
-
-from networkx.algorithms.shortest_paths.unweighted import predecessor
 
 sys.path.append(".")
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-import heapq
-from icecream import ic
+
+from heaps.fibonacci import FibHeap
+# from heaps.violation import Violation
+# from heaps.quake import QuakeHeap
 
 
 def convert_graph(G: nx.DiGraph) -> dict:
@@ -22,7 +19,7 @@ def convert_graph(G: nx.DiGraph) -> dict:
     return graph
 
 
-def dijkstra_path_heaps(G: nx.DiGraph, source, target, weight="weight", heap="FibHeap"):
+def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap_choice):
     """
     Returns the shortest weighted path from source to target in G.
         Uses Dijkstra's Method to compute the shortest weighted path
@@ -57,28 +54,36 @@ def dijkstra_path_heaps(G: nx.DiGraph, source, target, weight="weight", heap="Fi
         If no path exists between source and target.
     """
     graph = convert_graph(G)
-    queue = [(0, source)]
     distances = {source: 0}
     visited = set()
     predecessor = dict.fromkeys(G.nodes)
-    heap = FibHeap()
+
+    if heap_choice == "Fibonacci":
+        heap = FibHeap()
+    # elif heap_choice == "Violation":
+    #     heap = Violation()
+    # elif heap_choice == "Quake":
+    #     heap = QuakeHeap()
+    else:
+        heap = FibHeap()
+
     heap.insert(0, source)
 
-    while queue:
-        _, node = heapq.heappop(queue)  # (distance, node), ignore distance
+    while heap:
+        node = heap.extract_min().value
         if node in visited:
             continue
         visited.add(node)
         dist = distances[node]
-        for neighbour, neighbour_dist in graph[node].items():
-            if neighbour in visited:
+        for neighbor, neighbor_dist in graph[node].items():
+            if neighbor in visited:
                 continue
-            neighbour_dist += dist
-            if neighbour_dist < distances.get(neighbour, float("inf")):
-                predecessor[neighbour] = node
-                heapq.heappush(queue, (neighbour_dist, neighbour))
-                distances[neighbour] = neighbour_dist
-    
+            neighbor_dist += dist
+            if neighbor_dist < distances.get(neighbor, float("inf")):
+                predecessor[neighbor] = node
+                heap.insert(neighbor_dist, neighbor)
+                distances[neighbor] = neighbor_dist
+
     pred = predecessor[target]
     path = []
     path.append(target)
@@ -107,7 +112,7 @@ if __name__ == "__main__":
     nx.draw(G, layout, with_labels=True)
     # path = nx.dijkstra_path(G, source="a", target="z")
     # print(path)
-    path = dijkstra_path_heaps(G, source="a", target="z")
+    path = dijkstra_path_heaps(G, source="a", target="z", heap_choice="Fibonacci")
     print(path)
     path_edges = zip(path, path[1:])
     labels = nx.get_edge_attributes(G, "weight")
