@@ -28,7 +28,7 @@ class FibHeap(Heap):
     def insert(self, key, value=None):
         node = self.Node(key, value)
         node.left = node.right = node
-        self.merge_with_root_list(node)
+        self._merge_with_root_list(node)
         # Update min if needed
         if self.min_node is None or node.key < self.min_node.key:
             self.min_node = node
@@ -36,7 +36,7 @@ class FibHeap(Heap):
         return node
 
     # Iterate through a doubly linked list
-    def iterate(self, head=None):
+    def _iterate(self, head=None):
         if head is None:
             head = self.root_list
         current = head
@@ -53,19 +53,19 @@ class FibHeap(Heap):
         if smallest is None:
             raise ValueError("Cannot extract minimum: FibHeap is empty.")
         if smallest is not None:
-            children = [x for x in self.iterate(smallest.child)]
+            children = [x for x in self._iterate(smallest.child)]
             for i in range(0, len(children)):
-                self.merge_with_root_list(children[i])
+                self._merge_with_root_list(children[i])
                 children[i].parent = None
-        self.remove_from_root_list(smallest)
+        self._remove_from_root_list(smallest)
         self.total_nodes -= 1
         # Update min
         if smallest == smallest.right:
             self.min_node = self.root_list = None
         else:
             # self.min_node = smallest.right
-            self.min_node = self.find_min_node()
-            self.consolidate()
+            self.min_node = self._find_min_node()
+            self._consolidate()
         return smallest
 
     # Decrease key of node in the heap in O(1)
@@ -75,13 +75,13 @@ class FibHeap(Heap):
         node.key = k
         p = node.parent
         if p is not None and node.key < p.key:
-            self.cut(node, p)
-            self.cascading_cut(p)
+            self._cut(node, p)
+            self._cascading_cut(p)
         if node.key < self.min_node.key:
             self.min_node = node
 
     # Merge two trees in O(1) by concatenating root list
-    def merge(self, fh: "FibHeap") -> "FibHeap":
+    def _merge(self, fh: "FibHeap") -> "FibHeap":
         if fh.total_nodes == 0:
             return
         H = FibHeap()
@@ -100,23 +100,23 @@ class FibHeap(Heap):
 
     # If child node becomes smaller than parent node,
     # cut child node off and move to  root list
-    def cut(self, node: Node, parent: Node):
-        self.remove_from_child_list(parent, node)
+    def _cut(self, node: Node, parent: Node):
+        self._remove_from_child_list(parent, node)
         parent.degree -= 1
-        self.merge_with_root_list(node)
+        self._merge_with_root_list(node)
         node.parent = None
         node.mark = False
 
-    def cascading_cut(self, node: Node):
+    def _cascading_cut(self, node: Node):
         p = node.parent
         if p is not None:
             if p.mark is False:
                 p.mark = True
             else:
-                self.cut(node, p)
-                self.cascading_cut(p)
+                self._cut(node, p)
+                self._cascading_cut(p)
 
-    def merge_with_root_list(self, node: Node):
+    def _merge_with_root_list(self, node: Node):
         if self.root_list is None:
             self.root_list = node
         else:
@@ -125,7 +125,7 @@ class FibHeap(Heap):
             self.root_list.right.left = node
             self.root_list.right = node
 
-    def remove_from_root_list(self, node: Node):
+    def _remove_from_root_list(self, node: Node):
         if self.root_list is None:
             raise ValueError("Cannot remove from empty heap")
         if self.root_list == node:
@@ -138,7 +138,7 @@ class FibHeap(Heap):
         node.right.left = node.left
         return
 
-    def merge_with_child_list(self, parent: Node, node: Node):
+    def _merge_with_child_list(self, parent: Node, node: Node):
         if parent.child is None:
             parent.child = node
         else:
@@ -147,7 +147,7 @@ class FibHeap(Heap):
             parent.child.right.left = node
             parent.child.right = node
 
-    def remove_from_child_list(self, parent: Node, node: Node):
+    def _remove_from_child_list(self, parent: Node, node: Node):
         if parent.child == parent.child.right:
             parent.child = None
         elif parent.child == node:
@@ -157,56 +157,56 @@ class FibHeap(Heap):
         node.right.left = node.left
 
     # Consolidate root nodes of equal degree
-    def consolidate(self):
+    def _consolidate(self):
         if self.root_list is None:
             return
         ranks_mapping = [None] * self.total_nodes
-        nodes = [x for x in self.iterate(self.root_list)]
+        nodes = [x for x in self._iterate(self.root_list)]
         for node in nodes:
             degree = node.degree
             while ranks_mapping[degree] != None:
                 other = ranks_mapping[degree]
                 if node.key > other.key:
                     node, other = other, node
-                self.merge_nodes(node, other)
+                self._merge_nodes(node, other)
                 ranks_mapping[degree] = None
                 degree += 1
             ranks_mapping[degree] = node
 
-    def merge_nodes(self, node: Node, other: Node):
-        self.remove_from_root_list(other)
+    def _merge_nodes(self, node: Node, other: Node):
+        self._remove_from_root_list(other)
         other.left = other.right = other
         # Adding other node to child list of the frst one.
-        self.merge_with_child_list(node, other)
+        self._merge_with_child_list(node, other)
         node.degree += 1
         other.parent = node
         other.mark = False
 
     # Iterate through list to find minimum node
-    def find_min_node(self):
+    def _find_min_node(self):
         if self.root_list is None:
             return None
         else:
             smallest = self.root_list
-            for x in self.iterate(self.root_list):
+            for x in self._iterate(self.root_list):
                 if x.key < smallest.key:
                     smallest = x
             return smallest
 
-    def print(self, head=None):
+    def _print(self, head=None):
         if self.root_list is not None:
             count = 0
-            for heap in self.iterate():
+            for heap in self._iterate():
                 print(f"tree{count}\n[")
-                self.print_tree(heap)
+                self._print_tree(heap)
                 print("]\n")
                 count += 1
 
-    def print_tree(self, node: Node):
+    def _print_tree(self, node: Node):
         if node is None:
             return
         print(f"{node.key}: {node.value} ")
         if node.child is not None:
             print()
-            for child in self.iterate(node.child):
-                self.print_tree(child)
+            for child in self._iterate(node.child):
+                self._print_tree(child)
