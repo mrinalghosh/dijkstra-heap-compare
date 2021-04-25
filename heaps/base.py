@@ -8,11 +8,14 @@ class Heap(object):
         ''' initialize heap specific data structures '''
         pass
 
-    def insert(self, value):
+    def insert(self, key, value):
         ''' insert a new vertex into heap'''
 
     def extract_min(self):
         ''' delete minimum '''
+
+    def find_min(self):
+        ''' return minimum '''
 
     def decrease_key(self, vertex, key):
         ''' decrease key and maintain heap '''
