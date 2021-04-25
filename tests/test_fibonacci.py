@@ -13,12 +13,12 @@ def test_insert(uut):
     assert test_node.value == "apples"
 
 
-def test_find_min_node(uut):
+def test__find_min_node(uut):
     uut.insert(8)
     uut.insert(7)
     uut.insert(-9)
     uut.insert(4)
-    assert uut.find_min_node().key == -9
+    assert uut._find_min_node().key == -9
 
 
 def test_find_min(uut):
@@ -29,7 +29,7 @@ def test_find_min(uut):
     uut.insert(67)
     uut.extract_min()  # Extract 4
     uut.extract_min()  # Extract 5
-    assert uut.find_min_node().key == 7
+    assert uut.find_min().key == 7
 
 
 def test_extract_min(uut):
