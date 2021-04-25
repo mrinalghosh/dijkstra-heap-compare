@@ -1,9 +1,43 @@
-from heaps.rankpairing import RankPairingHeap
-import random
-import unittest
+import sys
+sys.path.append('.')
 
-n, repeats = 1000, 3
-testcase = [i for i in range(n) for _ in range(repeats)]
+import unittest
+import random
+from heaps.rankpairing import RankPairingHeap
+
+n, repeats = 10000, 3
+
+class RankPairingTest(unittest.TestCase):
+    def test(self):
+        self.assertTrue(True)
+
+    def test_extract(self, elements=None):
+        elements = elements or [i for i in range(n, -n, -1)]
+        random.shuffle(elements)
+        h = RankPairingHeap()
+        pops = []
+
+        for element in elements:
+            h.insert(element)
+
+        for _ in elements:
+            pops.append(h.extract_min())
+
+        self.assertListEqual(pops, sorted(elements))
+
+    def test_extract_repeats(self, elements=None):
+        elements = elements or [i for i in range(n, -n, -1) for _ in range(repeats)]
+        random.shuffle(elements)
+        h = RankPairingHeap()
+        pops = []
+
+        for element in elements:
+            h.insert(element)
+
+        for _ in elements:
+            pops.append(h.extract_min())
+
+        self.assertListEqual(pops, sorted(elements))
 
 def test_insert(n=5):
     h = RankPairingHeap()
@@ -26,32 +60,13 @@ def test_merge(n=5):
     h2.show()
 
 
-def test_delete_min(elements=testcase):
+def test_decrease_key(elements=None):
     random.shuffle(elements)
     h = RankPairingHeap()
     pops = []
 
     for element in elements:
         h.insert(element)
-
-    for _ in elements:
-        pops.append(h.delete_min())
-
-    diff = sum(i != j for i, j in zip(pops, sorted(elements)))
-
-    if diff == 0:
-        print('(delete_min) PASSED - all delete_min in correct order')
-    else:
-        print(f'(delete_min) FAILED - {diff} delete_min were wrong')
-
-def test_decrease_key(elements=testcase):
-    random.shuffle(elements)
-    h = RankPairingHeap()
-    pops = []
-
-    for element in elements:
-        h.insert(element)
-
 
     diff = sum(i != j for i, j in zip(pops, sorted(elements)))
 
@@ -61,8 +76,7 @@ def test_decrease_key(elements=testcase):
         print(f'(decrease_key) FAILED - {diff} decrease_key were wrong')
 
 
-
 if __name__ == '__main__':
     # test_merge()
-    test_delete_min()
-
+    # test_extract_min()
+    unittest.main()

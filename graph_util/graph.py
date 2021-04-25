@@ -26,29 +26,31 @@ class Vertex(object):
     def addNeighbor(self, v, w):
         self.neighbors[v] = self.neighbors.get(v, w)
 
-    def __lt__(self, other):
-        '''Override < method.'''
-        return self.distance < other.distance
 
-    def __le__(self, other):
-        '''Override <= method.'''
-        return self.distance <= other.distance
+    ''' can't override these since we want to compare equality as objects for LL '''
+    # def __lt__(self, other):
+    #     '''Override < method.'''
+    #     return self.distance < other.distance
 
-    def __gt__(self, other):
-        '''Override > method.'''
-        return self.distance > other.distance
+    # def __le__(self, other):
+    #     '''Override <= method.'''
+    #     return self.distance <= other.distance
 
-    def __ge__(self, other):
-        '''Override >= method.'''
-        return self.distance >= other.distance
+    # def __gt__(self, other):
+    #     '''Override > method.'''
+    #     return self.distance > other.distance
 
-    def __eq__(self, other):
-        '''Override == method.'''
-        return self.distance == other.distance
+    # def __ge__(self, other):
+    #     '''Override >= method.'''
+    #     return self.distance >= other.distance
 
-    def __repr__(self):
-        '''Override output method - for debug.'''
-        return f'{self.distance}'
+    # def __eq__(self, other):
+    #     '''Override == method.'''
+    #     return self.distance == other.distance
+
+    # def __repr__(self):
+    #     '''Override output method - for debug.'''
+    #     return f'{self.distance}'
 
 
 class Graph(object):

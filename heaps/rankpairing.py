@@ -15,6 +15,7 @@ Tasks:
 6. return key or vertex from extract_min?
 '''
 
+
 class HalfTree(Vertex):
     ''' class for root/internal nodes - can be merged into vertex '''
 
@@ -25,7 +26,7 @@ class HalfTree(Vertex):
         self.next = self.prev = self.parent = self.left = self.right = None
 
     def __repr__(self):
-        s = f'(R{self.rank}) '
+        s = f'key({self.key}) rank({self.rank}) '
         s += f' P({self.parent.key})' if self.parent else ' P(~)'
         s += f' l({self.left.key})' if self.left else ' l(~)'
         s += f' r({self.right.key})' if self.right else ' r(~)'
@@ -66,18 +67,45 @@ class RankPairingHeap(Heap):
 
         self.count += 1
 
-    def show(self, verbose=False, forward=True):
-        ''' debug print utility - verbose prints {previous-self-next} '''
-        if self.count == 0:
-            raise ValueError('RankPairingHeap empty')
+    # def show(self, verbose=False, forward=True):
+    #     ''' debug print utility - verbose prints {previous-self-next} '''
+    #     if self.count == 0:
+    #         raise ValueError('RankPairingHeap empty')
 
-        v = self.min
-        for _ in range(self.count):
-            if verbose:
-                print(f'{v.key}: {v.prev}, {v}, {v.next}')
-            else:
-                print(f'{v.key}', end=' ')
-            v = v.next if forward else v.prev
+    #     v = self.min
+    #     for _ in range(self.count):
+    #         if verbose:
+    #             print(f'{v.key}: {v.prev}, {v}, {v.next}')
+    #         else:
+    #             print(f'{v.key}', end=' ')
+    #         v = v.next if forward else v.prev
+
+    #     print(f'[min-key={self.min.key}, count={self.count}]\n')
+
+    def show(self):
+        def show_halftree(root):
+            if root is None:
+                return
+
+            queue = []
+            queue.append(root)
+            while(len(queue) > 0):
+                print(queue[0])
+                node = queue.pop(0)
+
+                if node.left is not None:
+                    queue.append(node.left)
+
+                if node.right is not None:
+                    queue.append(node.right)
+
+            print('')
+
+        show_halftree(self.min)
+        node = self.min.next
+        while node != self.min:
+            show_halftree(node)
+            node = node.next
 
         print(f'[min-key={self.min.key}, count={self.count}]\n')
 
@@ -133,7 +161,7 @@ class RankPairingHeap(Heap):
                 if lg.key < sm.key:
                     sm, lg = lg, sm
 
-                sm.left, lg.right, lg.parent = lg, sm.left, sm 
+                sm.left, lg.right, lg.parent = lg, sm.left, sm
                 lg.prev.next, lg.next.prev = lg.next, lg.prev
                 lg.next = lg.prev = None
                 sm.rank += 1
@@ -145,7 +173,7 @@ class RankPairingHeap(Heap):
 
     def extract_min(self):
         ''' pop minimum key vertex and return value '''
-        # del self.nodes[self.min.key]  # debug
+        # self.show()
 
         if self.count == 0:
             raise ValueError('Cannot extract_min: RankPairingHeap is empty')
@@ -163,12 +191,17 @@ class RankPairingHeap(Heap):
             node.parent = None
             self.min.next, node.next = node, self.min.next
             node.prev, node.next.prev = self.min, node
-            node = node.right
+            newnode = node.right
+            node.right = None
+            node = newnode
 
         ''' find new min in root-list and unlink old '''
         node, newkey = self.min.next, float('inf')
+        if node == self.min:
+            node = newmin = self.min.left
+
         while node != self.min:
-            if node.key < newkey:
+            if node.key <= newkey:
                 newmin = node
                 newkey = node.key
             node = node.next
