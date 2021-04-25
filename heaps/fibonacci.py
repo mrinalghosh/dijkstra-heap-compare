@@ -1,6 +1,6 @@
 from heaps.base import Heap
 
-
+# https://rosettacode.org/wiki/Fibonacci_heap#Python
 class FibHeap(Heap):
     """ Fibonacci heap priority queue """
 
@@ -116,6 +116,23 @@ class FibHeap(Heap):
                 self._cut(node, p)
                 self._cascading_cut(p)
 
+    # Consolidate root nodes of equal degree
+    def _consolidate(self):
+        if self.root_list is None:
+            return
+        ranks_mapping = [None] * self.total_nodes
+        nodes = [x for x in self._iterate(self.root_list)]
+        for node in nodes:
+            degree = node.degree
+            while ranks_mapping[degree] != None:
+                other = ranks_mapping[degree]
+                if node.key > other.key:
+                    node, other = other, node
+                self._heap_link(node, other)
+                ranks_mapping[degree] = None
+                degree += 1
+            ranks_mapping[degree] = node
+
     def _merge_with_root_list(self, node: Node):
         if self.root_list is None:
             self.root_list = node
@@ -156,24 +173,7 @@ class FibHeap(Heap):
         node.left.right = node.right
         node.right.left = node.left
 
-    # Consolidate root nodes of equal degree
-    def _consolidate(self):
-        if self.root_list is None:
-            return
-        ranks_mapping = [None] * self.total_nodes
-        nodes = [x for x in self._iterate(self.root_list)]
-        for node in nodes:
-            degree = node.degree
-            while ranks_mapping[degree] != None:
-                other = ranks_mapping[degree]
-                if node.key > other.key:
-                    node, other = other, node
-                self._merge_nodes(node, other)
-                ranks_mapping[degree] = None
-                degree += 1
-            ranks_mapping[degree] = node
-
-    def _merge_nodes(self, node: Node, other: Node):
+    def _heap_link(self, node: Node, other: Node):
         self._remove_from_root_list(other)
         other.left = other.right = other
         # Adding other node to child list of the frst one.
@@ -193,7 +193,7 @@ class FibHeap(Heap):
                     smallest = x
             return smallest
 
-    def _print(self, head=None):
+    def show(self):
         if self.root_list is not None:
             count = 0
             for heap in self._iterate():
