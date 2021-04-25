@@ -1,11 +1,9 @@
-from rankpairingheap import RankPairingHeap
+from heaps.rankpairing import RankPairingHeap
 import random
+import unittest
 
 n, repeats = 1000, 3
 testcase = [i for i in range(n) for _ in range(repeats)]
-# testcase = [i for i in range(n, 0, -1) for _ in range(repeats)] # negative range
-# testcase = [1,-100,-1,3]
-
 
 def test_insert(n=5):
     h = RankPairingHeap()

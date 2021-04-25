@@ -1,5 +1,5 @@
-import math
-from heap import Heap
+from math import log
+from heaps.base import Heap
 from graph_util.graph import Vertex
 from collections import defaultdict
 
@@ -12,7 +12,7 @@ Tasks:
 3. delete min                               X
 4. integrate with vertex
 5. clean up
-6. return key or vertex from delete_min?
+6. return key or vertex from extract_min?
 '''
 
 class HalfTree(Vertex):
@@ -70,7 +70,6 @@ class RankPairingHeap(Heap):
         ''' debug print utility - verbose prints {previous-self-next} '''
         if self.count == 0:
             raise ValueError('RankPairingHeap empty')
-            return
 
         v = self.min
         for _ in range(self.count):
@@ -108,16 +107,16 @@ class RankPairingHeap(Heap):
 
         self.count += heap.count
 
-    def peek(self):
+    def find_min(self):
         ''' return minimum key '''
         if self.count == 0:
             raise ValueError('Cannot peek: RankPairingHeap is empty')
         return self.min.key
 
-    def compress(self):
+    def _compress(self):
         ''' merge roots of equal rank until no two roots have equal rank '''
 
-        rankdict = defaultdict(lambda: [])  # {rank : list of roots}
+        rankdict = defaultdict(lambda: [])
 
         node = self.min.next
         while node != self.min:
@@ -125,7 +124,7 @@ class RankPairingHeap(Heap):
             node = node.next
 
         ''' recursively merge in pairs - update minimum '''
-        for rank in range(int(math.log(self.count, 2)) + 1):
+        for rank in range(int(log(self.count, 2)) + 1):
             mergelist = rankdict[rank]
 
             for _ in range(0, len(mergelist)-1, 2):
@@ -134,8 +133,8 @@ class RankPairingHeap(Heap):
                 if lg.key < sm.key:
                     sm, lg = lg, sm
 
-                sm.left, lg.right, lg.parent = lg, sm.left, sm  # build half-tree
-                lg.prev.next, lg.next.prev = lg.next, lg.prev  # relink - sm inplace
+                sm.left, lg.right, lg.parent = lg, sm.left, sm 
+                lg.prev.next, lg.next.prev = lg.next, lg.prev
                 lg.next = lg.prev = None
                 sm.rank += 1
 
@@ -144,12 +143,12 @@ class RankPairingHeap(Heap):
                 if sm.key < self.min.key:
                     self.min = sm
 
-    def delete_min(self):
+    def extract_min(self):
         ''' pop minimum key vertex and return value '''
         # del self.nodes[self.min.key]  # debug
 
         if self.count == 0:
-            raise ValueError('Cannot delete_min: RankPairingHeap is empty')
+            raise ValueError('Cannot extract_min: RankPairingHeap is empty')
 
         if self.count == 1:
             minkey = self.min.key
@@ -178,7 +177,7 @@ class RankPairingHeap(Heap):
         self.min.next.prev, self.min.prev.next = self.min.prev, self.min.next
         self.min = newmin
 
-        self.compress()
+        self._compress()
         self.count -= 1
 
         return minkey
@@ -186,12 +185,10 @@ class RankPairingHeap(Heap):
     def decrease_key(self, node, key):
         ''' decrement specified node.key absolutely to key '''
 
-        
-
         # TODO: need to integrate with Vertex to have object passed in correctly
 
         if key >= node.key:
-            raise ValueError('Cannot decrease key with value >= current value')
+            raise ValueError('Cannot decrease_key with value >= current value')
 
         node.key = key
 
