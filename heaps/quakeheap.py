@@ -45,10 +45,10 @@ class Heap(object):
     def insert(self, value):
         ''' insert a new vertex into heap'''
 
-    def deleteMin(self):
+    def extract_min(self):
         ''' delete minimum '''
 
-    def decreaseKey(self, vertex, key):
+    def decrease_key(self, vertex, key):
         ''' decrease key and maintain heap '''
         pass
 
@@ -118,7 +118,7 @@ class QuakeHeap(Heap):
     def insert(self, vertex: Vertex):
         t = TournamentTree(vertex, isvertex=True)
         self.trees[0].append(t)
-        if (self.min is None or vertex < self.min.vertex):
+        if (self.min is None or vertex.key < self.min.vertex.key):
             self.min = t.root
         self.numv[0] += 1
         # we need to maintain a length of the maximum number of nodes
@@ -128,18 +128,18 @@ class QuakeHeap(Heap):
 
     '''add a tree to the internal list of trees'''
 
-    def addTree(self, tree):
+    def _add_tree(self, tree):
         while(len(self.trees) <= tree.height):
             self.trees.append([])
         self.trees[tree.height].append(tree)
 
     '''
-    link two trees during a "recursive" merge
+    _link two trees during a "recursive" _merge
     assumes equal height
     '''
 
-    def link(self, tree1: TournamentTree, tree2: TournamentTree):
-        # link trees
+    def _link(self, tree1: TournamentTree, tree2: TournamentTree):
+        # _link trees
         minroot = min(tree1.root.vertex, tree2.root.vertex)
 
         # create a new tree with root being a clone of the minimum root of subtrees
@@ -156,22 +156,30 @@ class QuakeHeap(Heap):
 
         # update level count
         self.numv[n.height] += 1
-        if (self.min is None or n.root.vertex < self.min.vertex):
+        if (self.min is None or n.root.vertex.key < self.min.vertex.key):
             self.min = n.root
         # add to list of trees
-        self.addTree(n)
+        self._add_tree(n)
 
     # perform merging on trees with the same height
-    def merge(self):
+    def _merge(self):
         for L in self.trees:
+            # search for new min node among trees
+            curr_min = float('inf')
+            for l in L:
+                if (l.root.vertex.key < curr_min):
+                    self.min = l.root
+                    curr_min = self.min.vertex.key
+            # _link as long as there are two trees with the same height
+            # min will make it's way to the top anyway so above is safe
             while (len(L) >= 2):
-                self.link(L[0], L[1])
+                self._link(L[0], L[1])
                 L.pop(0)
                 L.pop(0)
 
-    '''cut a node from its parent'''
+    '''_cut a node from its parent'''
 
-    def cut(self, node: TournamentTree.Clone):
+    def _cut(self, node: TournamentTree.Clone):
         # if highest vertex is root
         if(node.parent is None):
             return
@@ -180,36 +188,38 @@ class QuakeHeap(Heap):
         else:
             node.parent.right = None
 
-        # then cut from node parent
+        # then _cut from node parent
         node.parent = None
 
     '''take a Vertex object and decrease its value to value'''
 
-    def decreaseKey(self, vertex: Vertex, value):
+    def decrease_key(self, vertex: Vertex, value):
         # update value of vertex, updating all clones by default
         vertex.key = value
-        # cut from parent
-        # check which side to cut from parent's child reference
+        # _cut from parent
+        # check which side to _cut from parent's child reference
 
+        # if the highest clone is a root (no parents) update min to new root
         if(vertex.highestclone.parent == None):
-            if(self.min == None or vertex.highestclone.vertex < self.min.vertex):
+            if(self.min == None or vertex.highestclone.vertex.key < self.min.vertex.key):
                 self.min = vertex.highestclone
             return
 
-        self.cut(vertex.highestclone)
+        self._cut(vertex.highestclone)
         # add a new tree of height of this tree
         newtree = TournamentTree(vertex.highestclone, clone=True)
-        if (self.min is None or vertex < self.min.vertex):
+        if (self.min is None or vertex.key < self.min.vertex.key):
             self.min = newtree.root
         newtree.height = vertex.highclonelevel
         self.trees[newtree.height].append(newtree)
 
     '''deletes the min vertex in heap'''
 
-    def deleteMin(self):
-        # walk up from vertex clone cutting itself from parents
+    def extract_min(self):
+        # walk up from vertex clone _cutting itself from parents
         quake_needed = False
         quake_level = 0
+        min_vert = self.min.vertex
         curr = self.min.vertex.lowestclone
         heightcount = 0
         if (curr.parent is None):
@@ -219,11 +229,11 @@ class QuakeHeap(Heap):
                     self.numv[t.height] -= 1
                     break
         else:
-            # cut up
-            # highest clone should always be root in deleteMin
+            # _cut up
+            # highest clone should always be root in extract_min
             while(curr.vertex.highestclone is not curr):
                 # see which side current node came from
-                # cut the other side
+                # _cut the other side
                 self.numv[heightcount] -= 1
                 '''
                 #!check for seismic operation
@@ -236,12 +246,12 @@ class QuakeHeap(Heap):
                 if(curr.parent.left.vertex == curr.vertex):
                     if(curr.parent.right is not None):
                         addnode = curr.parent.right
-                        self.cut(curr.parent.right)
+                        self._cut(curr.parent.right)
                         curr.right = None
                 else:
                     if(curr.parent.left is not None):
                         addnode = curr.parent.left
-                        self.cut(curr.parent.left)
+                        self._cut(curr.parent.left)
                         curr.left = None
                 curr = curr.parent
 
@@ -249,7 +259,7 @@ class QuakeHeap(Heap):
                 n = TournamentTree(addnode, clone=True,
                                    isvertex=addnode.isvertex)
                 n.height = addnode.vertex.highclonelevel
-                self.addTree(n)
+                self._add_tree(n)
                 heightcount += 1
 
             # now at the root, remove from tree list, add other child
@@ -259,22 +269,17 @@ class QuakeHeap(Heap):
                     self.numv[t.height] -= 1
                     break
 
-        # recursive merge trees of same height
-        self.merge()
+        # recursive _merge trees of same height
+        self._merge()
 
-        # search for new min node among trees
-        curr_min = float('inf')
-        for t in self.trees:
-            for l in t:
-                if (l.root.vertex.key < curr_min):
-                    self.min = l.root
-                    curr_min = self.min.vertex.key
         if(quake_needed):
-            self.seismicEvent(quake_level)
+            self._seismic_event(quake_level)
+        
+        return min_vert
 
     '''performs DFS during quake operation, removing all the nodes at level "level" and above'''
 
-    def DFS_delete(self, currheight, targetlevel, node):
+    def _dfs_delete(self, currheight, targetlevel, node):
         if(node == None):
             return
         # decrement if successful traversal down a node a level, we will be deleting the previous levels
@@ -292,32 +297,32 @@ class QuakeHeap(Heap):
             n.height = currheight-1
             n.root.vertex.highclonelevel = n.height
             n.root.vertex.highestclone = n.root
-            self.addTree(n)
+            self._add_tree(n)
             node.left = None
             node.right = None
         else:
-            self.DFS_delete(currheight-1, targetlevel, node.left)
-            self.DFS_delete(currheight-1, targetlevel, node.right)
+            self._dfs_delete(currheight-1, targetlevel, node.left)
+            self._dfs_delete(currheight-1, targetlevel, node.right)
 
     '''perform quake operation'''
 
-    def seismicEvent(self, level):
-        print("QUAKKKEEEEEEEEEEE")
-        print(level)
+    def _seismic_event(self, level):
+        print("QUAKKKEEEEEEEEEEE at level: ", level)
         '''height of tree must be at least equal to level
         loop through trees, with at least that level
         '''
         for i in range(level, len(self.trees)):
             for tree in self.trees[i]:
-                self.DFS_delete(i, level, tree.root)
+                self._dfs_delete(i, level, tree.root)
                 # within DFS Delete we create new trees, delete the original tree from list
                 self.trees[i].remove(tree)
-        self.merge()
+        # we find a new min here
+        self._merge()
 
     '''return the minimum VERTEX'''
 
-    def peakMin(self):
-        return self.min.vertex
+    def peak_min(self):
+        return self.min.vertex if self.min is not None else None
 
     '''print human readable heap'''
 
@@ -325,19 +330,20 @@ class QuakeHeap(Heap):
         for i in range(0, len(self.trees)):
             print("Height", i, ": ")
             for L in self.trees[i]:
-                self.printTree(L.root)
+                self._print_tree(L.root)
                 print("-------------------------------")
     '''called by show method to print tree'''
     # source: https://stackoverflow.com/questions/34012886/print-binary-tree-level-by-level-in-python
 
-    def printTree(self, root, level=0):
+    def _print_tree(self, root, level=0):
         if root != None:
-            self.printTree(root.left, level + 1)
+            self._print_tree(root.left, level + 1)
             print(' ' * 4 * level + '->', root.vertex)
-            self.printTree(root.right, level + 1)
+            self._print_tree(root.right, level + 1)
 
 
 qh = QuakeHeap()
+v8 = Vertex(8)
 v1 = Vertex(1)
 v2 = Vertex(2)
 v3 = Vertex(3)
@@ -345,7 +351,6 @@ v4 = Vertex(4)
 v5 = Vertex(5)
 v6 = Vertex(6)
 v7 = Vertex(7)
-v8 = Vertex(8)
 
 
 qh.insert(v1)
@@ -355,34 +360,36 @@ qh.insert(v4)
 qh.insert(v5)
 qh.insert(v6)
 qh.insert(v7)
-qh.insert(v8)
-qh.deleteMin()
+print(qh.extract_min())
+# qh.insert(v8)
+# qh.extract_min()
 
 
-qh.decreaseKey(v4, 0)
-qh.deleteMin()
-qh.decreaseKey(v5, 0)
-qh.deleteMin()
+# qh.decrease_key(v4, 0)
+# qh.extract_min()
+# qh.decrease_key(v5, 0)
+# qh.extract_min()
+print("Min node: ", qh.peak_min())
 
 
 # # print(v2.highclonelevel)
-# qh.deleteMin()
+# qh.extract_min()
 # # print(qh.numv)
-print(qh.peakMin())
+# print(qh.peak_min())
 
-print(qh.numv)
+# print(qh.numv)
 qh.show()
 
 
 # print(qh.trees)
 
 # print(v5.highclonelevel)
-# print(qh.peakMin())
+# print(qh.peak_min())
 
-# qh.merge()
-# qh.deleteMin()
+# qh._merge()
+# qh.extract_min()
 
-# qh.decreaseKey(v2, 1)
+# qh.decrease_key(v2, 1)
 
 
 # qh.show()
