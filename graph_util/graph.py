@@ -2,9 +2,8 @@
 
 This module contains helper functions and base classes for visualization of graphs.
 
-Sources used:
-https://gist.github.com/Tetsuya3850/a271ba66f35460e1e244aacbe792576b - vanilla min-heap
-https://github.com/reinvald/Dijkstra-Visualizer - networkx
+Sources:
+https://github.com/reinvald/Dijkstra-Visualizer - NetworkX
 '''
 
 import itertools
@@ -17,15 +16,15 @@ class Vertex(object):
     uidc = itertools.count()  # unique id counter
 
     def __init__(self, distance=float('inf')):
-        '''Initialize vertex with provided key and unique ID unless specified.''' 
+        '''Initialize vertex with provided key and unique ID unless specified.'''
         self.distance = distance  # key for priority queues
         self.neighbors = {}
         self.pred = None
         self.predweight = None
+        self.id = next(self.uidc)
 
     def addNeighbor(self, v, w):
         self.neighbors[v] = self.neighbors.get(v, w)
-
 
     ''' can't override these since we want to compare equality as objects for LL '''
     # def __lt__(self, other):

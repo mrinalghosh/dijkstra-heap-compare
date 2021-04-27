@@ -5,78 +5,81 @@ import unittest
 import random
 from heaps.rankpairing import RankPairingHeap
 
-n, repeats = 10000, 3
+n, repeats = 10, 1
 
 class RankPairingTest(unittest.TestCase):
-    def test(self):
-        self.assertTrue(True)
+    def setUp(self):
+        self.heap = RankPairingHeap()
+        self.testcase = [i for i in range(n, -n, -1)]
+        random.shuffle(self.testcase)
 
-    def test_extract(self, elements=None):
-        elements = elements or [i for i in range(n, -n, -1)]
-        random.shuffle(elements)
-        h = RankPairingHeap()
+    def test_insert(self):
+        heap = RankPairingHeap() # new heap so that other tests not affected
+        for i, element in enumerate(self.testcase, 1):
+            heap.insert(element)
+            count = heap.count - i
+
+        self.assertEqual(count, 0)
+            
+    def test_extract(self):
         pops = []
+        for element in self.testcase:
+            self.heap.insert(element)
+        for _ in self.testcase:
+            pops.append(self.heap.extract_min().distance)
 
+        self.assertListEqual(pops, sorted(self.testcase))
+
+    def test_extract_repeats(self):
+        elements, pops = [i for i in self.testcase for _ in range(repeats)], []
         for element in elements:
-            h.insert(element)
-
+            self.heap.insert(element)
         for _ in elements:
-            pops.append(h.extract_min())
+            pops.append(self.heap.extract_min().distance)
 
         self.assertListEqual(pops, sorted(elements))
 
-    def test_extract_repeats(self, elements=None):
-        elements = elements or [i for i in range(n, -n, -1) for _ in range(repeats)]
-        random.shuffle(elements)
-        h = RankPairingHeap()
-        pops = []
+    def test_merge(self):
+        h1, h2 = RankPairingHeap(), RankPairingHeap()
+        for i,j in zip(self.testcase[:n], self.testcase[n:]):
+            h1.insert(i)
+            h2.insert(j)
+        h1.merge(h2)
 
-        for element in elements:
-            h.insert(element)
-
-        for _ in elements:
-            pops.append(h.extract_min())
-
-        self.assertListEqual(pops, sorted(elements))
-
-def test_insert(n=5):
-    h = RankPairingHeap()
-    for i in range(n, 0, -1):
-        h.insert(i)
-    h.show()
+        self.assertTrue(h1.min.distance == min(h1.min.distance, h2.min.distance) and h1.count == 2*n)
 
 
-def test_merge(n=5):
-    h1, h2 = RankPairingHeap(), RankPairingHeap()
-
-    for i in range(n, 0, -1):  # insert reverse magnitude
-        h1.insert(i)
-        h2.insert(i+n)
-
-    h1.show()
-    h2.show()
-
-    h2.merge(h1)
-    h2.show()
-
+def test_extract():
+    testcase = [i for i in range(n, -n, -1)]
+    heap = RankPairingHeap()
+    pops = []
+    for i in testcase:
+        heap.insert(i)
+    for _ in testcase:
+        pops.append(heap.extract_min().distance)
+    
+    print(pops)
 
 def test_decrease_key(elements=None):
-    random.shuffle(elements)
     h = RankPairingHeap()
-    pops = []
+    h.insert(5)
+    h.insert(4)
+    x = h.insert(100)
+    y = h.insert(9)
+    h.insert(67)
+    h.extract_min()
+    h.show(verbose=True)
 
-    for element in elements:
-        h.insert(element)
+    h.decrease_key(x, 3) # doesn't work with multiple decrease keys to same value
+    h.show(verbose=True)
 
-    diff = sum(i != j for i, j in zip(pops, sorted(elements)))
-
-    if diff == 0:
-        print('(decrease_key) PASSED - all decrease_key in correct order')
-    else:
-        print(f'(decrease_key) FAILED - {diff} decrease_key were wrong')
-
+    # # h.show()
+    h.decrease_key(y, 3)
+    h.show(verbose=True)
+    # assert h.extract_min().distance == 3 # extract x
+    # assert y.distance == 1
 
 if __name__ == '__main__':
-    # test_merge()
-    # test_extract_min()
-    unittest.main()
+    # unittest.main()
+    test_decrease_key()
+    # test_extract()
