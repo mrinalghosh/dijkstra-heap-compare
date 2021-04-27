@@ -48,6 +48,8 @@ class RankPairingTest(unittest.TestCase):
 
         self.assertTrue(h1.min.distance == min(h1.min.distance, h2.min.distance) and h1.count == 2*n)
 
+    # def test_decrease_key(self):
+
 
 def test_extract():
     testcase = [i for i in range(n, -n, -1)]
@@ -68,18 +70,15 @@ def test_decrease_key(elements=None):
     y = h.insert(9)
     h.insert(67)
     h.extract_min()
-    h.show(verbose=True)
-
+    # h.show(verbose=True)
     h.decrease_key(x, 3) # doesn't work with multiple decrease keys to same value
-    h.show(verbose=True)
-
-    # # h.show()
-    h.decrease_key(y, 3)
-    h.show(verbose=True)
-    # assert h.extract_min().distance == 3 # extract x
-    # assert y.distance == 1
+    h.decrease_key(y, 1)
+    # h.show(verbose=True)
+    assert h.extract_min().distance == 1 # extract x
+    # h.show(verbose=True)
+    assert y.distance == 1
 
 if __name__ == '__main__':
-    # unittest.main()
-    test_decrease_key()
+    unittest.main()
+    # test_decrease_key()
     # test_extract()

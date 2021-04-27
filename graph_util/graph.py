@@ -16,40 +16,16 @@ class Vertex(object):
     uidc = itertools.count()  # unique id counter
 
     def __init__(self, distance=float('inf')):
-        '''Initialize vertex with provided key and unique ID unless specified.'''
-        self.distance = distance  # key for priority queues
+        ''' initialize vertex with provided distance/key and unique ID '''
+        self.distance = distance # key
         self.neighbors = {}
         self.pred = None
         self.predweight = None
-        self.id = next(self.uidc)
+        self.id = next(self.uidc) # unique ID set during creation/inheritance
 
     def addNeighbor(self, v, w):
         self.neighbors[v] = self.neighbors.get(v, w)
 
-    ''' can't override these since we want to compare equality as objects for LL '''
-    # def __lt__(self, other):
-    #     '''Override < method.'''
-    #     return self.distance < other.distance
-
-    # def __le__(self, other):
-    #     '''Override <= method.'''
-    #     return self.distance <= other.distance
-
-    # def __gt__(self, other):
-    #     '''Override > method.'''
-    #     return self.distance > other.distance
-
-    # def __ge__(self, other):
-    #     '''Override >= method.'''
-    #     return self.distance >= other.distance
-
-    # def __eq__(self, other):
-    #     '''Override == method.'''
-    #     return self.distance == other.distance
-
-    # def __repr__(self):
-    #     '''Override output method - for debug.'''
-    #     return f'{self.distance}'
 
 
 class Graph(object):

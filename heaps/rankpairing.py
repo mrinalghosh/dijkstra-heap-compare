@@ -5,27 +5,26 @@ from collections import defaultdict
 
 
 class HalfTree(Vertex):
-    ''' class for internal nodes '''
+    ''' HalfTree class for internal nodes '''
 
     def __init__(self, distance):
         super().__init__(distance)
         self.rank = 0
-        # self.distance = distance
         self.next = self.prev = self.parent = self.left = self.right = None
 
     def __repr__(self):
         ''' debug representation '''
-        s = f'{self.id} - dist({self.distance}) rank({self.rank}) '
-        s += f' P({self.parent.distance})' if self.parent else ' P(~)'
-        s += f' l({self.left.distance})' if self.left else ' l(~)'
-        s += f' r({self.right.distance})' if self.right else ' r(~)'
-        s += f' p({self.prev.distance})' if self.prev else ' p(~)'
-        s += f' n({self.next.distance})' if self.next else ' n(~)'
+        s = f'{self.id:^9}|{self.distance:^9}|{self.rank:^9}'        
+        s += f'|{self.parent.id:^9}' if self.parent else f'|{"-":^9}'
+        s += f'|{self.left.id:^9}' if self.left else f'|{"-":^9}'
+        s += f'|{self.right.id:^9}' if self.right else f'|{"-":^9}'
+        s += f'|{self.prev.id:^9}' if self.prev else f'|{"-":^9}'
+        s += f'|{self.next.id:^9}' if self.next else f'|{"-":^9}'
         return s
 
 
 class RankPairingHeap(Heap):
-    ''' Tarjan's paper: https://www.cs.princeton.edu/courses/archive/spr10/cos423/handouts/rankpairingheaps.pdf '''
+    ''' Implementation based on Tarjan's paper: https://www.cs.princeton.edu/courses/archive/spr10/cos423/handouts/rankpairingheaps.pdf '''
 
     def __init__(self):
         ''' initialize empty heap '''
@@ -44,52 +43,48 @@ class RankPairingHeap(Heap):
             self.min = node if self.min.distance > node.distance else self.min
 
         else:
-            if self.min.distance > key:  # first position
+            if self.min.distance > key:  # min-root
                 self.min.prev, node.prev, node.next = node, self.min.prev, self.min
                 node.prev.next = self.min = node
-            else:  # second position
+            else:  # min-root.next
                 self.min.next, node.next, node.prev = node, self.min.next, self.min
                 node.next.prev = node
 
         self.count += 1
         return node
 
-    def _show_verbose(self, root):
+    def _show_bfs(self, root):
+        ''' traverse half-tree using breadth first search '''
         if root is None:
             return
 
-        queue = []
-        queue.append(root)
+        queue = [root]
         while(len(queue) > 0):
             print(queue[0])
             node = queue.pop(0)
-
             if node.left is not None:
                 queue.append(node.left)
-
             if node.right is not None:
                 queue.append(node.right)
 
-        print('')
+        print('-'*80)
 
     def show(self, verbose=False):
-        ''' debug print utility - verbose prints {previous-self-next} '''
+        ''' debug print utility - verbose prints all half trees '''
         if self.count == 0:
             raise ValueError('RankPairingHeap empty')
 
         if verbose:
-            self._show_verbose(self.min)
+            print(f'{"id":^9}|{"key":^9}|{"rank":^9}|{"parent":^9}|{"left":^9}|{"right":^9}|{"prev":^9}|{"next":^9}')
+            self._show_bfs(self.min)
             node = self.min.next
             while node != self.min:
-                self._show_verbose(node)
+                self._show_bfs(node)
                 node = node.next
         else:
-            node = self.min
-            for _ in range(self.count):
-                if verbose:
-                    print(f'{node.distance}: {node.prev}, {node}, {node.next}')
-                else:
-                    print(f'{node.distance}', end=' ')
+            node = self.min.next
+            while node != self.min:
+                print(f'{node.distance}', end=' ')
                 node = node.next
 
         print(f'[min-distance={self.min.distance}, count={self.count}]\n')
@@ -149,8 +144,6 @@ class RankPairingHeap(Heap):
 
     def extract_min(self):
         ''' pop minimum distance vertex and return key '''
-        # self.show()
-
         if self.count == 0:
             raise ValueError('Cannot extract_min: RankPairingHeap is empty')
 
@@ -185,6 +178,7 @@ class RankPairingHeap(Heap):
         self.min.next.prev, self.min.prev.next = self.min.prev, self.min.next
         self.min = newmin
 
+        ''' compress and decrement count '''
         self._compress()
         self.count -= 1
 
@@ -197,34 +191,26 @@ class RankPairingHeap(Heap):
 
         node.distance = key
 
-        ''' remove node and L subtree to new half-tree 
-        replace node in parent with node's previous R child '''
+        ''' remove node and Lchild to new half-tree & replace in parent with node Rchild '''
         if node.parent:
             node.parent.left = node.right
-            node.right = None # TODO: set node parent = None after updating tree
-        else: # in root-list - just update min - no need to relink
+            node.right = None
+        else:  # in root-list - just update min without relinking
             if self.min.distance > node.distance:
                 self.min = node
                 return
 
         ''' relink and update min '''
-        if self.min.distance > key:  # insert in first
-            self.min.prev, node.prev, node.next = node, self.min.prev, self.min
-            node.prev.next = node.next.prev = self.min = node
-        else:  # second
-            self.min.next, node.next, node.prev = node, self.min.next, self.min
-            node.next.prev = node.prev.next = node
+        if self.min.distance > key:  # min-root
+            node.prev, node.next = self.min.prev, self.min
+            self.min.prev = self.min = node
+            node.prev.next = node.next.prev = node
+        else:  # min-root.next
+            node.prev.next = node.next
+            node.next, node.prev = self.min.next, self.min
+            self.min.next = node.next.prev = node
 
-        # print(node)
-        # print(node.next)
-        # print(node.next.next)
-        # print(node.next.next.next)
-        # print(node.next.next.next.next)
-        # print('---------------------------------------------')
-
-        # self.show(verbose=True)
-
-        ''' update ranks for previous tree node was in '''
+        ''' update ranks for previous tree '''
         p = node.parent
         node.parent = None
         while p:
@@ -241,13 +227,6 @@ class RankPairingHeap(Heap):
                     p.rank = max(p.left.rank, p.right.rank) + 1
 
             p = p.parent
-
-        # print(node)
-        # print(node.next)
-        # print(node.next.next)
-        # print(node.next.next.next)
-        # print(node.next.next.next.next)
-        # print('---------------------------------------------')
 
     def __len__(self):
         ''' number of elements currently in heap '''
