@@ -22,6 +22,10 @@ class Vertex(object):
         self.neighbors = {}
         self.pred = None
         self.predweight = None
+        #quake stuff
+        self.highestclone = None
+        self.highclonelevel = 0
+        self.lowestclone = None
 
     def addNeighbor(self, v, w):
         self.neighbors[v] = self.neighbors.get(v, w)

@@ -307,7 +307,7 @@ class QuakeHeap(Heap):
     '''perform quake operation'''
 
     def _seismic_event(self, level):
-        print("QUAKKKEEEEEEEEEEE at level: ", level)
+        # print("QUAKKKEEEEEEEEEEE at level: ", level)
         '''height of tree must be at least equal to level
         loop through trees, with at least that level
         '''

@@ -31,7 +31,7 @@ def test_insert(uut):
     assert uut.peak_min().key == 1
 
 
-def test__find_min_node(uut):
+def test__extract_min(uut):
     uut.insert(v1)
     uut.insert(v2)
     uut.insert(v3)

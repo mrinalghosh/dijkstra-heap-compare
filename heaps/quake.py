@@ -57,12 +57,14 @@ class QuakeHeap(Heap):
         if(vertex is not None):
             self.insert(vertex)
             self.numv[0] += 1
+    def __len__(self):
+        return self.numv[0]
 
     # insert a new element, creating new tree, update min root
     def insert(self, vertex: Vertex):
         t = TournamentTree(vertex, isvertex=True)
         self.trees[0].append(t)
-        if (self.min is None or vertex < self.min.vertex):
+        if (self.min is None or vertex.key < self.min.vertex.key):
             self.min = t.root
         self.numv[0] += 1
         # we need to maintain a length of the maximum number of nodes
@@ -100,7 +102,7 @@ class QuakeHeap(Heap):
 
         # update level count
         self.numv[n.height] += 1
-        if (self.min is None or n.root.vertex < self.min.vertex):
+        if (self.min is None or n.root.vertex.key < self.min.vertex.key):
             self.min = n.root
         # add to list of trees
         self._add_tree(n)
@@ -145,14 +147,14 @@ class QuakeHeap(Heap):
 
         # if the highest clone is a root (no parents) update min to new root
         if(vertex.highestclone.parent == None):
-            if(self.min == None or vertex.highestclone.vertex < self.min.vertex):
+            if(self.min == None or vertex.highestclone.vertex.key < self.min.vertex.key):
                 self.min = vertex.highestclone
             return
 
         self._cut(vertex.highestclone)
         # add a new tree of height of this tree
         newtree = TournamentTree(vertex.highestclone, clone=True)
-        if (self.min is None or vertex < self.min.vertex):
+        if (self.min is None or vertex.key < self.min.vertex.key):
             self.min = newtree.root
         newtree.height = vertex.highclonelevel
         self.trees[newtree.height].append(newtree)
@@ -163,6 +165,7 @@ class QuakeHeap(Heap):
         # walk up from vertex clone _cutting itself from parents
         quake_needed = False
         quake_level = 0
+        min_vert = self.min.vertex
         curr = self.min.vertex.lowestclone
         heightcount = 0
         if (curr.parent is None):
@@ -217,6 +220,8 @@ class QuakeHeap(Heap):
 
         if(quake_needed):
             self._seismic_event(quake_level)
+        
+        return min_vert
 
     '''performs DFS during quake operation, removing all the nodes at level "level" and above'''
 
@@ -248,7 +253,7 @@ class QuakeHeap(Heap):
     '''perform quake operation'''
 
     def _seismic_event(self, level):
-        print("QUAKKKEEEEEEEEEEE at level: ", level)
+        # print("QUAKKKEEEEEEEEEEE at level: ", level)
         '''height of tree must be at least equal to level
         loop through trees, with at least that level
         '''
