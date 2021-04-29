@@ -2,15 +2,16 @@ from heaps.base import Heap
 
 # https://rosettacode.org/wiki/Fibonacci_heap#Python
 class FibHeap(Heap):
-    """ Fibonacci heap priority queue """
+    """Fibonacci heap priority queue"""
 
     class Node:
-        def __init__(self, key, value):
-            self.key = key
-            self.value = value
+        def __init__(self, data: dict, name=None):
+            self.key = data["key"]
+            self.name = name
             self.parent = self.child = self.left = self.right = None
             self.degree = 0
             self.mark = False
+            self.data = data
 
     # Pointer to element of doubly linked root list
     root_list = None
@@ -25,8 +26,8 @@ class FibHeap(Heap):
     def find_min(self) -> Node:
         return self.min_node
 
-    def insert(self, key, value=None):
-        node = self.Node(key, value)
+    def insert(self, data: dict, name=None):
+        node = self.Node(data, name)
         node.left = node.right = node
         self._merge_with_root_list(node)
         # Update min if needed
@@ -205,7 +206,7 @@ class FibHeap(Heap):
     def _print_tree(self, node: Node):
         if node is None:
             return
-        print(f"{node.key}: {node.value} ")
+        print(f"Key: {node.key}")
         if node.child is not None:
             print()
             for child in self._iterate(node.child):

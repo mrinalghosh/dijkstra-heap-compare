@@ -3,117 +3,75 @@ import sys
 sys.path.append(".")
 import networkx as nx
 import matplotlib.pyplot as plt
-import numpy as np
 
 from heaps.fibonacci import FibHeap
-# from heaps.violation import Violation
-# from heaps.quake import QuakeHeap
-
-
-def convert_graph(G: nx.DiGraph) -> dict:
-    # Converts adjacency list for networkx graph into adjacency list dictionary
-    nx_adjlist = [(n, nbrdict) for n, nbrdict in G.adjacency()]
-    graph = {}
-    for t in nx_adjlist:
-        graph[t[0]] = {obj: t[1][obj]["weight"] for obj in t[1]}
-    return graph
 
 
 def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap_choice):
-    """
-    Returns the shortest weighted path from source to target in G.
-        Uses Dijkstra's Method to compute the shortest weighted path
-        between two nodes in a graph.
-
-        Parameters
-        ----------
-        G : NetworkX graph
-
-        source : node
-        Starting node
-
-        target : node
-        Ending node
-
-        weight : string or function
-
-        heap : string
-            Heap implementation to use for priority queue
-
-        Returns
-        -------
-        path : list
-        List of nodes in a shortest path.
-
-        Raises
-        ------
-        NodeNotFound
-            If `source` is not in `G`.
-
-        NetworkXNoPath
-        If no path exists between source and target.
-    """
-    graph = convert_graph(G)
-    distances = {source: 0}
-    visited = set()
-    predecessor = dict.fromkeys(G.nodes)
 
     if heap_choice == "Fibonacci":
         heap = FibHeap()
-    # elif heap_choice == "Violation":
-    #     heap = Violation()
-    # elif heap_choice == "Quake":
-    #     heap = QuakeHeap()
     else:
         heap = FibHeap()
 
-    heap.insert(0, source)
+    G.nodes["a"]["key"] = 0
+
+    for n in G.nodes:
+        G.nodes[n]["node"] = heap.insert(G.nodes[n], n)
 
     while heap:
-        node = heap.extract_min().value
-        if node in visited:
-            continue
-        visited.add(node)
-        dist = distances[node]
-        for neighbor, neighbor_dist in graph[node].items():
-            if neighbor in visited:
-                continue
-            neighbor_dist += dist
-            if neighbor_dist < distances.get(neighbor, float("inf")):
-                predecessor[neighbor] = node
-                heap.insert(neighbor_dist, neighbor)
-                distances[neighbor] = neighbor_dist
+        n = heap.extract_min()
+        for edge in G.edges(n.name):
+            u, v = edge
+            dist = G.nodes[u]["key"] + G[u][v]["weight"]
+            if G.nodes[v]["key"] > dist:
+                G.nodes[v]["key"] = dist
+                G.nodes[v]["pred"] = u
+                heap.decrease_key(G.nodes[v]["node"], dist)
 
-    pred = predecessor[target]
     path = []
     path.append(target)
+    pred = G.nodes[target]["pred"]
     while pred is not None:
         path.append(pred)
-        pred = predecessor[pred]
+        pred = G.nodes[pred]["pred"]
     path.reverse()
     return path
 
 
 if __name__ == "__main__":
+    G = nx.Graph()
 
-    A = [
-        [0, 4, 2, 0, 0, 0],
-        [4, 0, 1, 5, 0, 0],
-        [2, 1, 0, 8, 10, 0],
-        [0, 5, 8, 0, 2, 6],
-        [0, 0, 10, 2, 0, 5],
-        [0, 0, 0, 6, 5, 0],
-    ]
-    mapping = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "z"}
+    G.add_node("a")
+    G.add_node("b")
+    G.add_node("c")
+    G.add_node("d")
+    G.add_node("e")
+    G.add_node("z")
 
-    G = nx.from_numpy_matrix(np.matrix(A), create_using=nx.DiGraph)
-    G = nx.relabel_nodes(G, mapping)
+    nx.set_node_attributes(G, float("inf"), "key")
+    nx.set_node_attributes(G, None, "pred")
+    nx.set_node_attributes(G, None, "node")
+
+    G.add_edge("a", "b", weight=4)
+    G.add_edge("a", "c", weight=2)
+    G.add_edge("b", "c", weight=1)
+    G.add_edge("b", "d", weight=5)
+    G.add_edge("c", "d", weight=8)
+    G.add_edge("c", "e", weight=10)
+    G.add_edge("d", "e", weight=2)
+    G.add_edge("d", "z", weight=6)
+    G.add_edge("e", "z", weight=5)
+
     layout = nx.spring_layout(G)
     nx.draw(G, layout, with_labels=True)
+
     # path = nx.dijkstra_path(G, source="a", target="z")
     # print(path)
+
     path = dijkstra_path_heaps(G, source="a", target="z", heap_choice="Fibonacci")
     print(path)
+
     path_edges = zip(path, path[1:])
     labels = nx.get_edge_attributes(G, "weight")
     nx.draw_networkx_edge_labels(G, pos=layout, edge_labels=labels)
