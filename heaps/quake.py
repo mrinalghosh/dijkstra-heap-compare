@@ -71,6 +71,10 @@ class QuakeHeap(Heap):
         # append new tree to level 0
         self.trees[0].append(t)  
         # if there is no min node, or inserted key is less than min node, update min node
+        if(self.min is 0):
+            self.show()
+            print (self.min)
+        
         if (self.min is None or data["key"] < self.min.vertex.key):
             self.min = t.root
         # increment number of nodes at lowest level
@@ -134,26 +138,20 @@ class QuakeHeap(Heap):
     def _merge(self):
         a = 0
         curr_min = float('inf')
-        backup_min = 0
 
         for L in self.trees:
             # Search for new min node among trees
             for l in L:
-                if (l.root.vertex.key <= curr_min):
-                    if (l.root.vertex.key < curr_min):
+                if(self.min != float('inf')):
+                    if (l.root.vertex.key <= curr_min):
                         self.min = l.root
                         curr_min = self.min.vertex.key
-                    else:
-                        if(backup_min == 0):
-                            backup_min = l.root
                 # Link as long as there are two trees with the same height
                 # Min will make it's way to the top anyway so above is safe
             while (len(L) >= 2):
                 self._link(L[0], L[1])
                 L.pop(0)
                 L.pop(0)
-        if(curr_min == float('inf')):
-            self.min = backup_min
 
     '''Cut a node from its parent'''
 
@@ -226,7 +224,7 @@ class QuakeHeap(Heap):
                 #!check for seismic operation
                 N(i+1) must be less than or equal to alpha * N(i)
                 '''
-                if((heightcount+1 < len(self.numv)) and (self.numv[heightcount+1]/self.numv[heightcount] > self.alpha)):
+                if((heightcount+1 < len(self.numv)) and (self.numv[heightcount] != 0) and (self.numv[heightcount+1]/self.numv[heightcount] > self.alpha)):
                     quake_needed = True
                     quake_level = heightcount+1
 

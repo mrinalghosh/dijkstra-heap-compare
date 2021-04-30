@@ -9,12 +9,13 @@ from statistics import mean
 from test_graphs.graph_generator import *
 from heaps.fibonacci import FibHeap
 from heaps.violation import ViolationHeap
+from heaps.quake import QuakeHeap
 #from heaps.min import MinHeap
 #from heaps.quake import QuakeHeap
 #from heaps.rankparing import RankPairingHeap
 
 
-HEAPS = ["Fibonacci", "Violation"]
+HEAPS = ["Quake", "Fibonacci", "Violation"]
 #HEAPS = ["Fibonacci"]
 
 def get_heap(heap_choice):
@@ -25,9 +26,9 @@ def get_heap(heap_choice):
         heap = ViolationHeap()
     elif heap_choice == "Min":
         heap = MinHeap()
-    elif heap_choice == "QuakeHeap":
+    elif heap_choice == "Quake":
         heap = QuakeHeap()
-    elif heap_choice == "RankPairingHeap":
+    elif heap_choice == "RankPairing":
         heap = RankPairingHeap()
     
     return heap
