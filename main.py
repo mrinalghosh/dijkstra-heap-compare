@@ -14,8 +14,8 @@ from heaps.violation import ViolationHeap
 #from heaps.rankparing import RankPairingHeap
 
 
-#HEAPS = ["Fibonacci", "Violation"]
-HEAPS = ["Fibonacci"]
+HEAPS = ["Fibonacci", "Violation"]
+#HEAPS = ["Fibonacci"]
 
 def get_heap(heap_choice):
     """Get specified heap instance."""
@@ -124,7 +124,7 @@ def smoke_tests(show=False):
 def dijkstra_time(G, source, target, heap):
     """Compute Dijkstra's shortest path time."""
     repeat = 3
-    runs = 100
+    runs = 10
     times = []
 
     # Add Graph attrs
@@ -174,6 +174,7 @@ def performance_test():
     
     results = {}
     for heap_name in HEAPS:
+        print(f"Running: {heap_name}")
         run_info = {}
         run_list = []
         graph_count = 0
@@ -182,7 +183,7 @@ def performance_test():
             
             # Run Dijktra
             run_info["time_info"] = dijkstra_time(G, source, target, get_heap(heap_name))
-            
+
             # Record graph info
             run_info['graph_info'] = {
                 "graph_obj": G, 
@@ -191,10 +192,18 @@ def performance_test():
                 "num_edges": G.number_of_edges(source, target)
             }
 
+            print("graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, path_found = {}".format(
+                graph_count, 
+                run_info["graph_info"]["num_nodes"],
+                run_info["graph_info"]["num_edges"],
+                run_info["time_info"]["avg_time"], 
+                run_info["time_info"]["algo_res"][G]))
+
             # Add the run info into list
             run_list.append(run_info)
             graph_count += 1
         
+        print(f"Done running for each graph: {heap_name}")
         # Add the results
         results[heap_name] = run_list
 

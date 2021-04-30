@@ -96,7 +96,7 @@ class ViolationHeap(object):
         max_rank = 0
         
         # We need another list to do a 3 way join
-        rank_comb = [None] * (self.count * 10)
+        rank_comb = [None] * (self.count * 100)
         
         # Move to a tmp list, do a deep copy
         tmp = []
