@@ -1,30 +1,38 @@
+import itertools
 from math import log
-from heaps.base import Heap
-from graph_util.graph import Vertex
+# from heaps.base import Heap
 from collections import defaultdict
 
 
-class HalfTree(Vertex):
-    ''' HalfTree class for internal nodes '''
-
-    def __init__(self, distance):
-        super().__init__(distance)
-        self.rank = 0
-        self.next = self.prev = self.parent = self.left = self.right = None
-
-    def __repr__(self):
-        ''' debug representation '''
-        s = f'{self.id:^9}|{self.distance:^9}|{self.rank:^9}'        
-        s += f'|{self.parent.id:^9}' if self.parent else f'|{"-":^9}'
-        s += f'|{self.left.id:^9}' if self.left else f'|{"-":^9}'
-        s += f'|{self.right.id:^9}' if self.right else f'|{"-":^9}'
-        s += f'|{self.prev.id:^9}' if self.prev else f'|{"-":^9}'
-        s += f'|{self.next.id:^9}' if self.next else f'|{"-":^9}'
-        return s
+'''
+Sources: 
+https://www.cs.princeton.edu/courses/archive/spr10/cos423/handouts/rankpairingheaps.pdf
+'''
 
 
-class RankPairingHeap(Heap):
-    ''' Implementation based on Tarjan's paper: https://www.cs.princeton.edu/courses/archive/spr10/cos423/handouts/rankpairingheaps.pdf '''
+class RankPairingHeap(object):
+    ''' Rank-Pairing Heap Implementation based on Tarjan's paper '''
+
+    class HalfTree(object):
+        ''' HalfTree class for internal nodes '''
+
+        uidc = itertools.count()  # unique ID counter for debug
+
+        def __init__(self, key):
+            self.id = next(self.uidc)
+            self.key = key
+            self.rank = 0
+            self.next = self.prev = self.parent = self.left = self.right = None
+
+        def __repr__(self):
+            ''' debug representation '''
+            s = f'{self.id:^9}|{self.key:^9}|{self.rank:^9}'
+            s += f'|{self.parent.id:^9}' if self.parent else f'|{"-":^9}'
+            s += f'|{self.left.id:^9}' if self.left else f'|{"-":^9}'
+            s += f'|{self.right.id:^9}' if self.right else f'|{"-":^9}'
+            s += f'|{self.prev.id:^9}' if self.prev else f'|{"-":^9}'
+            s += f'|{self.next.id:^9}' if self.next else f'|{"-":^9}'
+            return s
 
     def __init__(self):
         ''' initialize empty heap '''
@@ -33,17 +41,17 @@ class RankPairingHeap(Heap):
 
     def insert(self, key):
         ''' add singleton to root-list '''
-        node = HalfTree(key)
+        node = RankPairingHeap.HalfTree(key)
 
         if self.count == 0:
             self.min = node.next = node.prev = node
 
         elif self.count == 1:
             self.min.next, self.min.prev, node.next, node.prev = node, node, self.min, self.min
-            self.min = node if self.min.distance > node.distance else self.min
+            self.min = node if self.min.key > node.key else self.min
 
         else:
-            if self.min.distance > key:  # min-root
+            if self.min.key > key:  # min-root
                 self.min.prev, node.prev, node.next = node, self.min.prev, self.min
                 node.prev.next = self.min = node
             else:  # min-root.next
@@ -75,7 +83,8 @@ class RankPairingHeap(Heap):
             raise ValueError('RankPairingHeap empty')
 
         if verbose:
-            print(f'{"id":^9}|{"key":^9}|{"rank":^9}|{"parent":^9}|{"left":^9}|{"right":^9}|{"prev":^9}|{"next":^9}')
+            print(
+                f'{"id":^9}|{"key":^9}|{"rank":^9}|{"parent":^9}|{"left":^9}|{"right":^9}|{"prev":^9}|{"next":^9}')
             self._show_bfs(self.min)
             node = self.min.next
             while node != self.min:
@@ -84,10 +93,10 @@ class RankPairingHeap(Heap):
         else:
             node = self.min.next
             while node != self.min:
-                print(f'{node.distance}', end=' ')
+                print(f'{node.key}', end=' ')
                 node = node.next
 
-        print(f'[min-distance={self.min.distance}, count={self.count}]\n')
+        print(f'[min-key={self.min.key}, count={self.count}]\n')
 
     def merge(self, heap):
         ''' merge root lists and update minimum '''
@@ -101,13 +110,13 @@ class RankPairingHeap(Heap):
         self.min.next, heap.min.prev = heap.min, self.min
 
         ''' update self.min '''
-        if self.min.distance > heap.min.distance:
+        if self.min.key > heap.min.key:
             self.min = heap.min
 
         self.count += heap.count
 
     def find_min(self):
-        ''' return minimum distance '''
+        ''' return minimum key '''
         if self.count == 0:
             raise ValueError('Cannot find_min: RankPairingHeap is empty')
         return self.min
@@ -129,7 +138,7 @@ class RankPairingHeap(Heap):
             for _ in range(0, len(mergelist)-1, 2):
                 lg, sm = mergelist.pop(), mergelist.pop()
 
-                if lg.distance < sm.distance:
+                if lg.key < sm.key:
                     sm, lg = lg, sm
 
                 sm.left, lg.right, lg.parent = lg, sm.left, sm
@@ -139,11 +148,11 @@ class RankPairingHeap(Heap):
 
                 rankdict[sm.rank].append(sm)
 
-                if sm.distance < self.min.distance:
+                if sm.key < self.min.key:
                     self.min = sm
 
     def extract_min(self):
-        ''' pop minimum distance vertex and return key '''
+        ''' pop minimum key vertex and return key '''
         if self.count == 0:
             raise ValueError('Cannot extract_min: RankPairingHeap is empty')
 
@@ -169,9 +178,9 @@ class RankPairingHeap(Heap):
             node = newmin = self.min.left
 
         while node != self.min:
-            if node.distance < newdistance:
+            if node.key < newdistance:
                 newmin = node
-                newdistance = node.distance
+                newdistance = node.key
             node = node.next
 
         ''' unlink and reassign self.min to node in root-list '''
@@ -185,23 +194,27 @@ class RankPairingHeap(Heap):
         return oldmin
 
     def decrease_key(self, node, key):
-        ''' decrement specified node.distance absolutely to key '''
-        if key >= node.distance:
+        ''' decrement specified node.key absolutely to key '''
+        if key >= node.key:
             raise ValueError('Cannot decrease_distance with key >= current')
 
-        node.distance = key
+        if node == self.min:
+            self.min.key = key
+            return
+
+        node.key = key
 
         ''' remove node and Lchild to new half-tree & replace in parent with node Rchild '''
         if node.parent:
             node.parent.left = node.right
             node.right = None
         else:  # in root-list - just update min without relinking
-            if self.min.distance > node.distance:
+            if self.min.key > node.key:
                 self.min = node
                 return
 
         ''' relink and update min '''
-        if self.min.distance > key:  # min-root
+        if self.min.key > key:  # min-root
             node.prev, node.next = self.min.prev, self.min
             self.min.prev = self.min = node
             node.prev.next = node.next.prev = node

@@ -2,24 +2,30 @@
 
 
 class Heap(object):
-    ''' Generic heap class for inheritance '''
+    '''Generic heap class for inheritance'''
 
     def __init__(self):
-        ''' initialize heap specific data structures '''
+        '''initialize heap specific data structures'''
         pass
 
-    def insert(self, value):
-        ''' insert a new vertex into heap'''
+    def insert(self, key):
+        '''insert a new vertex into heap'''
+        pass
 
     def extract_min(self):
-        ''' delete minimum '''
+        '''delete minimum'''
+        pass
 
-    def decrease_key(self, vertex, key):
-        ''' decrease key and maintain heap '''
+    def find_min(self):
+        '''return minimum'''
+        pass
+
+    def decrease_key(self, node, key):
+        '''decrease key and maintain heap'''
         pass
 
     def show(self):
-        ''' print heap in appropriate format '''
+        '''print heap in appropriate format'''
         pass
 
     def __len__(self):
