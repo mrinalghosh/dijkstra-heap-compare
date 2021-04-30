@@ -2,11 +2,11 @@
 Python Implementation of Quake Heap utilizing insertion of NetworkX nodes.
 Implented by: Camden Kronhaus
 '''
-
-from heaps.base import Heap
-import math
 import sys
 sys.path.append("..")
+from heaps.base import Heap
+import math
+
 
 class TournamentTree:
     '''
