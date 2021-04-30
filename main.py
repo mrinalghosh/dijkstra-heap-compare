@@ -5,12 +5,16 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 from heaps.fibonacci import FibHeap
+from heaps.quake import QuakeHeap
+
 
 
 def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap_choice):
 
     if heap_choice == "Fibonacci":
         heap = FibHeap()
+    if heap_choice == "Quake":
+        heap = QuakeHeap()
     else:
         heap = FibHeap()
 
