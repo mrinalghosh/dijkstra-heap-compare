@@ -1,18 +1,19 @@
 import sys
 
 sys.path.append(".")
-import timeit
+import time
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from statistics import mean
 from test_graphs.graph_generator import *
 from heaps.fibonacci import FibHeap
 from heaps.violation import ViolationHeap
 #from heaps.min import MinHeap
 #from heaps.quake import QuakeHeap
+#from heaps.rankparing import RankPairingHeap
 
 
-#HEAPS = ["Fibonacci", "Violation", "Rank_Pairing", "Quake", "Min"]
 #HEAPS = ["Fibonacci", "Violation"]
 HEAPS = ["Fibonacci"]
 
@@ -32,65 +33,9 @@ def get_heap(heap_choice):
     return heap
 
 
-def visualize_graph(graph, path, show=True, labels=True, layout_type="spring"):
-    """Visualize a Networkx graph object."""
-    nx.draw(graph, with_labels=labels, pos=getattr(nx, f"{layout_type}_layout")(graph))
-    
-    path_edges = zip(path, path[1:])
-    edge_labels = nx.get_edge_attributes(G, "weight")
-
-    nx.draw_networkx_edge_labels(G, pos=layout, edge_labels=edge_labels)
-    nx.draw_networkx_nodes(G, layout, nodelist=path, node_color="r")
-    nx.draw_networkx_edges(G, layout, edgelist=list(path_edges), edge_color="r", width=3)
-
-    if show:
-        plt.show()
-
-
-def sanity_check(heap_choice="Fibonacci"):
-    """Quick sanity check for dijkstra implementation"""
-    G = nx.Graph()
-
-    G.add_node("a")
-    G.add_node("b")
-    G.add_node("c")
-    G.add_node("d")
-    G.add_node("e")
-    G.add_node("z")
-
-    nx.set_node_attributes(G, float("inf"), "key")
-    nx.set_node_attributes(G, None, "pred")
-    nx.set_node_attributes(G, None, "node")
-
-    G.add_edge("a", "b", weight=4)
-    G.add_edge("a", "c", weight=2)
-    G.add_edge("b", "c", weight=1)
-    G.add_edge("b", "d", weight=5)
-    G.add_edge("c", "d", weight=8)
-    G.add_edge("c", "e", weight=10)
-    G.add_edge("d", "e", weight=2)
-    G.add_edge("d", "z", weight=6)
-    G.add_edge("e", "z", weight=5)
-
-    path = dijkstra_path_heaps(G, source="a", target="z", heap_choice="Fibonacci")
-    if not path:
-        raise Exception(f"{heap_choice} did not find a path!!")
-        
-    visualize_graph(G, path)
-
-
-def smoke_tests():
-    """Run sanity check for each heap."""
-    for heap in HEAPS:
-        try:
-            sanity_check(heap)
-        except:
-            print(f"{heap} heap failed running the sanity check!")
-
-
-def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap):
+def dijkstra_path_heaps(G, source, target, heap):
     """Dijkstra's Algorithm Implementation"""
-    G.nodes["a"]["key"] = 0
+    G.nodes[source]["key"] = 0
 
     for n in G.nodes:
         G.nodes[n]["node"] = heap.insert(G.nodes[n], n)
@@ -115,12 +60,91 @@ def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap):
     return path
 
 
-def dijkstra_time(heap, source, target):
-    """Compute Dijkstra's shortest path time."""
+def visualize_graph(G, path, heap_choice, show=True, labels=True, layout_type="spring"):
+    """Visualize a Networkx graph object."""
+    layout = getattr(nx, f"{layout_type}_layout")(G)
+    nx.draw(G, with_labels=labels, pos=layout)
     
-    # TODO
+    path_edges = zip(path, path[1:])
+    edge_labels = nx.get_edge_attributes(G, "weight")
 
-    return times
+    nx.draw_networkx_edge_labels(G, pos=layout, edge_labels=edge_labels)
+    nx.draw_networkx_nodes(G, layout, nodelist=path, node_color="r")
+    nx.draw_networkx_edges(G, layout, edgelist=list(path_edges), edge_color="r", width=3)
+
+    plt.title(heap_choice)
+    plt.savefig(f"{heap_choice}.png")
+    if show:
+        plt.show()
+    
+
+def sanity_check(heap_choice="Fibonacci", show=False):
+    """Quick sanity check for dijkstra implementation"""
+    G = nx.Graph()
+
+    G.add_node("a")
+    G.add_node("b")
+    G.add_node("c")
+    G.add_node("d")
+    G.add_node("e")
+    G.add_node("z")
+
+    nx.set_node_attributes(G, float("inf"), "key")
+    nx.set_node_attributes(G, None, "pred")
+    nx.set_node_attributes(G, None, "node")
+
+    G.add_edge("a", "b", weight=4)
+    G.add_edge("a", "c", weight=2)
+    G.add_edge("b", "c", weight=1)
+    G.add_edge("b", "d", weight=5)
+    G.add_edge("c", "d", weight=8)
+    G.add_edge("c", "e", weight=10)
+    G.add_edge("d", "e", weight=2)
+    G.add_edge("d", "z", weight=6)
+    G.add_edge("e", "z", weight=5)
+
+    heap = get_heap(heap_choice)
+    path = dijkstra_path_heaps(G=G, source="a", target="z", heap=heap)
+    if not path:
+        raise Exception(f"{heap_choice} did not find a path!!")
+    
+    if show:
+        visualize_graph(G, path, heap_choice)
+
+
+def smoke_tests(show=False):
+    """Run sanity check for each heap."""
+    for heap in HEAPS:
+        try:
+            sanity_check(heap, show)
+        except:
+            print(f"{heap} heap failed running the sanity check!")
+
+
+def dijkstra_time(G, source, target, heap):
+    """Compute Dijkstra's shortest path time."""
+    repeat = 3
+    runs = 100
+    times = []
+
+    # Add Graph attrs
+    nx.set_node_attributes(G, float("inf"), "key")
+    nx.set_node_attributes(G, None, "pred")
+    nx.set_node_attributes(G, None, "node")
+
+    dijkstra_results = {}
+    # Run Dijkstra's
+    for i in range(repeat):
+        t0 = time.time()
+        for j in range(runs):
+            dijkstra_results[G] = dijkstra_path_heaps(G, source, target, heap)
+        t1 = time.time()
+        times.append(t1 - t0)
+    
+    # Get the results and pass them back
+    results = {"runs": runs, "repeat": repeat, "avg_time": mean(times), "algo_res": dijkstra_results}
+    
+    return results
 
 
 def get_search_nodes(G):
@@ -151,27 +175,49 @@ def performance_test():
     results = {}
     for heap_name in HEAPS:
         run_info = {}
-        for graph in test_graphs:
-            source, target = get_search_nodes(graph)
+        run_list = []
+        graph_count = 0
+        for G in test_graphs:
+            source, target = get_search_nodes(G)
             
             # Run Dijktra
-            run_info["time_info"] = dijkstra_time(get_heap(heap_name), source, target)
+            run_info["time_info"] = dijkstra_time(G, source, target, get_heap(heap_name))
             
             # Record graph info
-            run_info['graph_info'] = [1, 2, 3] # TODO
+            run_info['graph_info'] = {
+                "graph_obj": G, 
+                "graph_num": graph_count,
+                "num_nodes": G.number_of_nodes(), 
+                "num_edges": G.number_of_edges(source, target)
+            }
 
-            # Add the results
-            results[heap_name] = run_info
+            # Add the run info into list
+            run_list.append(run_info)
+            graph_count += 1
+        
+        # Add the results
+        results[heap_name] = run_list
 
     return results
 
+
+def report():
+    pass
+
 if __name__ == "__main__":
     
-    # Run sanity checks
-    smoke_tests()
+    # Run a sanity check on single heap
+    #sanity_check("Violation", show=True)
+    
+    # Run sanity checks for all heaps
+    #smoke_tests(show=False)
 
     # Run performance tests
-    performance_test()
+    results = performance_test()
+    print("Finished!")
+
+    # Record results into a csv and plot it
+    report()
 
     
 

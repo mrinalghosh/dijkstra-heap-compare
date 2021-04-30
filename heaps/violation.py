@@ -1,25 +1,35 @@
-''' Violation Heap Implementation.'''
+''' Violation Heap Implementation.
+
+References:
+https://violationheap.weebly.com/
+https://arxiv.org/pdf/0812.2851.pdf
+https://github.com/haoliangx/Violation-Heap
+'''
 
 from math import ceil
-from graph_util.graph import Vertex
-
-class Node(Vertex):
-    '''Class defining the Violation Heap node.'''
-    def __init__(self, distance, rank=0):
-        super().__init__(distance)
-        self.rank = rank
-        self.next = None
-        self.prev = None
-        self.child = None
 
 
 class ViolationHeap(object):
     ''' Class defining the Violation Heap Specific Methods.'''
 
+    class Node:
+        '''Class defining the Violation Heap node.'''
+        def __init__(self, data: dict, name=None, rank=0):
+            self.key = data["key"]
+            self.name = name
+            self.data = data
+            self.rank = rank
+            self.next = None
+            self.prev = None
+            self.child = None
+
     def __init__(self):
         '''Create a Violation Heap Object.'''
         self.root = None
         self.count = 0
+    
+    def __len__(self):
+        return self.count
 
     def _active(self, node):
         '''Check if given node is active or not.''' 
@@ -48,7 +58,7 @@ class ViolationHeap(object):
             return (nodel_a, nodel_b)
         
         # Swap, to get a new min
-        if nodel_a.distance > nodel_b.distance:
+        if nodel_a.key > nodel_b.key:
             tmp = nodel_a
             nodel_a = nodel_b
             nodel_b = tmp
@@ -86,11 +96,13 @@ class ViolationHeap(object):
         max_rank = 0
         
         # We need another list to do a 3 way join
-        rank_comb = [None] * (self.count * 2)
+        rank_comb = [None] * (self.count * 10)
         
         # Move to a tmp list, do a deep copy
         tmp = []
         curr = self.root
+        if curr == None:
+            return
         while curr:
             tmp.append(curr)
             curr = curr.next
@@ -104,11 +116,11 @@ class ViolationHeap(object):
             i2 = rank_comb[(2 * i.rank) + 1]
             while i1 and i2:
                 # Swap to get min
-                if i.distance > i1.distance:
+                if i.key > i1.key:
                     tmp_i = i
                     i = i1
                     i1 = tmp_i  
-                if i.distance > i2.distance:
+                if i.key > i2.key:
                     tmp_i = i
                     i = i2
                     i2 = tmp_i
@@ -136,10 +148,9 @@ class ViolationHeap(object):
             self.root, tmp1 = self._join(self.root, tmp1)
             self.root, tmp2 = self._join(self.root, tmp2)
 
-
-    def insert(self, value):
+    def insert(self, data: dict, name=None):
         '''Add a new node into the heap.'''
-        new_node = Node(value)
+        new_node = self.Node(data, name)
         self.root, new_node = self._join(self.root, new_node)
         self.count += 1
         
@@ -160,17 +171,20 @@ class ViolationHeap(object):
             # Now, we have to fix the heap...
             self._consolidate()
 
+        else:
+            raise ValueError("Cannot extract minimum: ViolationHeap is empty.")
+
         return min_node
 
     def decrease_key(self, node, key):
         '''Decrease key from a given vertex.'''
-        if key >= node.distance:
+        if key >= node.key:
             raise ValueError("Key provided >= to node.key!")
         else:
-            node.distance = key
+            node.key = key
 
         if node.prev == None:
-            if node.distance < self.root.distance:
+            if node.key < self.root.key:
                 curr = self.root
                 while curr.next != node:
                     curr= curr.next
@@ -184,7 +198,7 @@ class ViolationHeap(object):
             return
 
         node_is_active, parent = self._active(node)
-        if node_is_active and parent.distance <= node.distance:
+        if node_is_active and parent.key <= node.key:
             return
 
         n_rank = self._update_rank(node)
@@ -209,14 +223,12 @@ class ViolationHeap(object):
 
         self._join(self.root, node)
 
-    
     def find_min(self):
-        return self.root.distance
-
+        return self.root
 
     def show(self):
         '''Print the heap.'''
         curr = self.root
         while curr:
-            print("D:", curr.distance)
+            print("D:", curr.key)
             curr = curr.next
