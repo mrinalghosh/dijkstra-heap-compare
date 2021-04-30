@@ -1,11 +1,3 @@
-''' Base Class for a Graph Object.
-
-This module contains helper functions and base classes for visualization of graphs.
-
-Sources:
-https://github.com/reinvald/Dijkstra-Visualizer - NetworkX
-'''
-
 import itertools
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -17,15 +9,14 @@ class Vertex(object):
 
     def __init__(self, distance=float('inf')):
         ''' initialize vertex with provided distance/key and unique ID '''
-        self.distance = distance # key
+        self.distance = distance
         self.neighbors = {}
         self.pred = None
         self.predweight = None
-        self.id = next(self.uidc) # unique ID set during creation/inheritance
+        self.id = next(self.uidc)
 
     def addNeighbor(self, v, w):
         self.neighbors[v] = self.neighbors.get(v, w)
-
 
 
 class Graph(object):
@@ -33,21 +24,20 @@ class Graph(object):
         self.graph = {}
 
     def addVertex(self, vertex):
-        # check if in dict else add vertex to dict
         self.graph[vertex.name] = self.graph.get(vertex.name, vertex)
 
     def addEdge(self, u, v, w):
-        if u in self.graph and v in self.graph:  # only add edges between existing nodes in graph
+        if u in self.graph and v in self.graph:
             self.graph[u].addNeighbor(v, w)
 
     def show(self):
         G = nx.DiGraph()  # directed graph with self loops
 
-        for name in self.graph.keys():  # add all nodes to graph
+        for name in self.graph.keys():
             G.add_node(name)
 
-        for u, v in self.graph.items():  # for each vertex
-            for n, w in v.neighbors.items():  # for each neighbor
+        for u, v in self.graph.items():
+            for n, w in v.neighbors.items():
                 G.add_edge(u, n, weight=w)
 
         # shell layout - could be random, spectral_layout, spring_layout or circular_layout

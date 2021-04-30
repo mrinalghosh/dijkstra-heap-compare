@@ -109,8 +109,8 @@ class RankPairingHeap(Heap):
     def find_min(self):
         ''' return minimum distance '''
         if self.count == 0:
-            raise ValueError('Cannot peek: RankPairingHeap is empty')
-        return self.min.distance
+            raise ValueError('Cannot find_min: RankPairingHeap is empty')
+        return self.min
 
     def _compress(self):
         ''' merge roots of equal rank until no two roots have equal rank '''
