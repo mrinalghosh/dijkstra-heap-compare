@@ -10,13 +10,11 @@ from test_graphs.graph_generator import *
 from heaps.fibonacci import FibHeap
 from heaps.violation import ViolationHeap
 from heaps.quake import QuakeHeap
-#from heaps.min import MinHeap
-#from heaps.quake import QuakeHeap
+from heaps.minheap import MinHeap
 #from heaps.rankparing import RankPairingHeap
 
 
-HEAPS = ["Quake", "Fibonacci", "Violation"]
-#HEAPS = ["Fibonacci"]
+HEAPS = ["Quake", "Fibonacci", "Violation", "MinHeap"]
 
 def get_heap(heap_choice):
     """Get specified heap instance."""
@@ -24,7 +22,7 @@ def get_heap(heap_choice):
         heap = FibHeap()
     elif heap_choice == "Violation":
         heap = ViolationHeap()
-    elif heap_choice == "Min":
+    elif heap_choice == "MinHeap":
         heap = MinHeap()
     elif heap_choice == "Quake":
         heap = QuakeHeap()
