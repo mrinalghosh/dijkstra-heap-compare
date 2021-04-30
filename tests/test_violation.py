@@ -1,4 +1,4 @@
-''' Violation Heap Unit Tests'''
+""" Violation Heap Unit Tests"""
 
 import pytest
 from heaps.violation import ViolationHeap
