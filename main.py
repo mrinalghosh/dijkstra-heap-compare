@@ -189,7 +189,7 @@ def performance_test():
                 "graph_obj": G, 
                 "graph_num": graph_count,
                 "num_nodes": G.number_of_nodes(), 
-                "num_edges": G.number_of_edges(source, target)
+                "num_edges": G.number_of_edges()
             }
 
             print("graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, path_found = {}".format(
