@@ -1,26 +1,34 @@
+from heaps.quake import QuakeHeap
 import sys
 
 sys.path.append(".")
 import networkx as nx
 import matplotlib.pyplot as plt
 
-from heaps.fibonacci import FibHeap
+# from heaps.fibonacci import FibHeap
+from heaps.quake import QuakeHeap
 
 
 def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap_choice):
 
     if heap_choice == "Fibonacci":
-        heap = FibHeap()
+        heap = QuakeHeap()
     else:
-        heap = FibHeap()
+        heap = QuakeHeap()
 
     G.nodes["a"]["key"] = 0
 
     for n in G.nodes:
         G.nodes[n]["node"] = heap.insert(G.nodes[n], n)
 
+    # count = 0
+    # while count < 10:
+    #     count += 1
     while heap:
+        heap.show()
         n = heap.extract_min()
+        print(n)
+        heap.show()
         for edge in G.edges(n.name):
             u, v = edge
             dist = G.nodes[u]["key"] + G[u][v]["weight"]
@@ -28,6 +36,8 @@ def dijkstra_path_heaps(G: nx.DiGraph, source, target, heap_choice):
                 G.nodes[v]["key"] = dist
                 G.nodes[v]["pred"] = u
                 heap.decrease_key(G.nodes[v]["node"], dist)
+                heap.show()
+
 
     path = []
     path.append(target)

@@ -1,67 +1,64 @@
+import pytest
 import sys
 sys.path.append("..")
-import pytest
-from heaps import quakeheap
-from heaps.quakeheap import Vertex
+from heaps import quake
 
-v8 = Vertex(8)
-v1 = Vertex(1)
-v2 = Vertex(2)
-v3 = Vertex(3)
-v4 = Vertex(4)
-v5 = Vertex(5)
-v6 = Vertex(6)
-v7 = Vertex(7)
 # Set up an empty Fibonacci heap for test functions
 @pytest.fixture
 def uut():
- 
-    return quakeheap.QuakeHeap()
+    return quake.QuakeHeap()
 
-# Set up an empty Quake heap for test functions
+
 def test_insert(uut):
-    uut.insert(v1)
-    uut.insert(v2)
-    uut.insert(v3)
-    uut.insert(v4)
-    uut.insert(v5)
-    uut.insert(v6)
-    uut.insert(v7)
-    uut.insert(v8) 
-    assert uut.peak_min().key == 1
+    node = {"key": 5, "value": "apples"}
+    test_node = uut.insert(node, node["value"])
+    assert test_node.key == 5
+    assert test_node.name == "apples"
 
 
-def test__extract_min(uut):
-    uut.insert(v1)
-    uut.insert(v2)
-    uut.insert(v3)
-    uut.insert(v4)
-    uut.insert(v5)
-    uut.insert(v6)
-    uut.insert(v7)
-    uut.insert(v8) 
-    assert uut.extract_min().key == 1
+def test__find_min_node(uut):
+    uut.insert({"key": 8})
+    uut.insert({"key": 7})
+    uut.insert({"key": -9})
+    uut.insert({"key": 4})
+    assert uut._peak_min().key == -9
+
+
+def test_find_min(uut):
+    uut.insert({"key": 5})
+    uut.insert({"key": 4})
+    uut.insert({"key": 7})
+    uut.insert({"key": 9})
+    uut.insert({"key": 67})
+    uut.extract_min()  # Extract 4
+    uut.extract_min()  # Extract 5
+    assert uut._peak_min().key == 7
+
+
+def test_extract_min(uut):
+    uut.insert({"key": 5})
+    uut.insert({"key": 4})
+    uut.insert({"key": 7})
+    uut.insert({"key": 9})
+    uut.insert({"key": 67})
+    assert uut.extract_min().key == 4
+    assert uut.extract_min().key == 5
 
 
 def test_decrease_key(uut):
-    v8 = Vertex(18)
-    v1 = Vertex(1)
-    v2 = Vertex(2)
-    v3 = Vertex(3)
-    v4 = Vertex(4)
-    v5 = Vertex(5)
-    v6 = Vertex(6)
-    v7 = Vertex(7)
-    uut.insert(v1)
-    uut.insert(v2)
-    uut.insert(v3)
-    uut.insert(v4)
-    uut.insert(v5)
-    uut.insert(v6)
-    uut.insert(v7)
-    uut.insert(v8) 
+    uut.insert({"key": 5})
+    uut.insert({"key": 4})
+    x = uut.insert({"key": 100})
+    y = uut.insert({"key": 9})
+    uut.insert({"key": 67})
     uut.extract_min()
-    uut.decrease_key(v7, 0)
-    assert uut.extract_min().key == 0
-    uut.decrease_key(v8, 8)
-    assert v8.key == 8
+    uut.decrease_key(x, 3)
+    assert uut.extract_min().key == 3  # extract x
+    uut.decrease_key(y, 8)
+    assert y.key == 8
+
+
+def test_decrease_key_greater(uut):
+    x = uut.insert({"key": 5})
+    with pytest.raises(ValueError):
+        uut.decrease_key(x, 10)
