@@ -8,7 +8,7 @@ from heaps import violation
 # Empty Violation Heap for test functions
 @pytest.fixture
 def uut():
-    return ViolationHeap()
+    return violation.ViolationHeap()
 
 
 def test_insert(uut):
