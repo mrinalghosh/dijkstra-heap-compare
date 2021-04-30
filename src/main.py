@@ -1,20 +1,20 @@
 import sys
 
-sys.path.append(".")
+sys.path.append("..")
 import time
 import networkx as nx
 import matplotlib.pyplot as plt
 
 from statistics import mean
-from test_graphs.graph_generator import *
-from heaps.fibonacci import FibHeap
-from heaps.violation import ViolationHeap
-from heaps.quake import QuakeHeap
-from heaps.minheap import MinHeap
+from input.test_graphs.graph_generator import *
+from src.heaps.fibonacci import FibHeap
+from src.heaps.violation import ViolationHeap
+from src.heaps.quake import QuakeHeap
+from src.heaps.minheap import MinHeap
 #from heaps.rankparing import RankPairingHeap
 
 
-HEAPS = ["Quake", "Fibonacci", "Violation", "MinHeap"]
+HEAPS = ["MinHeap", "Fibonacci", "Quake", "Violation"]
 
 def get_heap(heap_choice):
     """Get specified heap instance."""

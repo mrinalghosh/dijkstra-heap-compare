@@ -1,7 +1,7 @@
 """ Violation Heap Unit Tests"""
 import sys
 import pytest
-sys.path.append("../../src")
+sys.path.append("../src")
 from heaps import violation
 
 

@@ -1,6 +1,6 @@
 import pytest
 import sys
-sys.path.append("../../src")
+sys.path.append("../src")
 from heaps import fibonacci
 
 # Set up an empty Fibonacci heap for test functions

@@ -14,7 +14,7 @@ MAX_VERTEX_RANGE = (10, 1000)
 MAX_EDGE_RANGE = (10, 1000)
 MAX_WEIGHT_RANGE = (10, 1000)
 
-GRAPHS_DIR = "./test_graphs"
+GRAPHS_DIR = "../input/test_graphs"
 
 
 def create_graph(v_range=MAX_VERTEX_RANGE, e_range=MAX_EDGE_RANGE, w_range=MAX_WEIGHT_RANGE, graph_type="gnm_random_graph"):
