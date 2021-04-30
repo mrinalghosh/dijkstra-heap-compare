@@ -21,7 +21,7 @@ def test__find_min_node(uut):
     uut.insert({"key": 7})
     uut.insert({"key": -9})
     uut.insert({"key": 4})
-    assert uut._peak_min().key == -9
+    assert uut.find_min().key == -9
 
 
 def test_find_min(uut):
@@ -32,7 +32,7 @@ def test_find_min(uut):
     uut.insert({"key": 67})
     uut.extract_min()  # Extract 4
     uut.extract_min()  # Extract 5
-    assert uut._peak_min().key == 7
+    assert uut.find_min().key == 7
 
 
 def test_extract_min(uut):

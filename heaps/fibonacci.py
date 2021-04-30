@@ -1,4 +1,7 @@
 from graph_util.graph import Vertex
+import sys
+sys.path.append("..")
+from heaps.base import Heap
 
 class FibTree(Vertex):
     '''Vertex Object for Fibonacci Heap.'''
