@@ -1,8 +1,4 @@
 from heaps.base import Heap
-<<<<<<< HEAD
-from graph_util.graph import Vertex
-=======
->>>>>>> main
 
 # https://rosettacode.org/wiki/Fibonacci_heap#Python
 class FibHeap(Heap):
