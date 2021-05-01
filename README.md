@@ -162,6 +162,8 @@ MinHeap
 0,10,12
 ```
 
+![](sample_graph.png)
+
 ## References
 Quake Heaps
 - http://www.eecs.tufts.edu/~aloupis/comp150/classnotes/Quake-heap.pdf 
