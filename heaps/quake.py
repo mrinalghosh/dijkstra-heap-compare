@@ -71,7 +71,7 @@ class QuakeHeap(Heap):
         # append new tree to level 0
         self.trees[0].append(t)  
         # if there is no min node, or inserted key is less than min node, update min node
-        if(self.min is 0):
+        if(self.min == 0):
             self.show()
             print (self.min)
         
