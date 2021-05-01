@@ -1,21 +1,24 @@
-from heaps.rankpairing import RankPairingHeap
-from heaps.violation import ViolationHeap
-from heaps.fibonacci import FibHeap
-from test_graphs.graph_generator import *
-from statistics import mean
-import matplotlib.pyplot as plt
-import networkx as nx
-import time
 import sys
 
 sys.path.append(".")
+import time
+import networkx as nx
+import matplotlib.pyplot as plt
+import csv
+from hwcounter import count, count_end
 
-#from heaps.min import MinHeap
-#from heaps.quake import QuakeHeap
+from statistics import mean
+from test_graphs.graph_generator import *
+from heaps.fibonacci import FibHeap
+from heaps.violation import ViolationHeap
+from heaps.quake import QuakeHeap
+from heaps.minheap import MinHeap
+
+# from heaps.rankpairing import RankPairingHeap
 
 
-HEAPS = ["RankPairing"]
-#HEAPS =["Fibonacci"]
+HEAPS = ["Quake", "Fibonacci", "Violation", "MinHeap"]
+# HEAPS = ["Quake", "Fibonacci", "Violation", "MinHeap", "RankPairing"]
 
 
 def get_heap(heap_choice):
@@ -24,14 +27,14 @@ def get_heap(heap_choice):
         heap = FibHeap()
     elif heap_choice == "Violation":
         heap = ViolationHeap()
-    elif heap_choice == "Min":
+    elif heap_choice == "MinHeap":
         heap = MinHeap()
-    elif heap_choice == "QuakeHeap":
+    elif heap_choice == "Quake":
         heap = QuakeHeap()
-    elif heap_choice == "RankPairing":
-        heap = RankPairingHeap()
+    # elif heap_choice == "RankPairing":
+    #     heap = RankPairingHeap()
     else:
-        raise NameError(f'{heap_choice} does not exist')
+        raise NameError(f"{heap_choice} does not exist")
 
     return heap
 
@@ -43,33 +46,15 @@ def dijkstra_path_heaps(G, source, target, heap):
     for n in G.nodes:
         G.nodes[n]["node"] = heap.insert(G.nodes[n], n)
 
-
     while heap:
-        # print(f'POPPED {heap.find_min()}')
-        # heap.show(verbose=True)
-
         n = heap.extract_min()
-        print(f'extract_min => {n.name} {n.key}')
-        # heap.debug_check_loop()
-        if n.name == 34:
-            heap.show(verbose=True)
-
-
         for edge in G.edges(n.name):
             u, v = edge
-                
             dist = G.nodes[u]["key"] + G[u][v]["weight"]
             if G.nodes[v]["key"] > dist:
                 G.nodes[v]["key"] = dist
                 G.nodes[v]["pred"] = u
-                
                 heap.decrease_key(G.nodes[v]["node"], dist)
-            
-            print(f'decrease_key => {edge} -> {dist}')
-            # if (u,v) == (84, 100):
-            #     heap.show(verbose=True)
-            # heap.debug_check_loop()
-
 
     path = []
     path.append(target)
@@ -91,8 +76,9 @@ def visualize_graph(G, path, heap_choice, show=True, labels=True, layout_type="s
 
     nx.draw_networkx_edge_labels(G, pos=layout, edge_labels=edge_labels)
     nx.draw_networkx_nodes(G, layout, nodelist=path, node_color="r")
-    nx.draw_networkx_edges(G, layout, edgelist=list(
-        path_edges), edge_color="r", width=3)
+    nx.draw_networkx_edges(
+        G, layout, edgelist=list(path_edges), edge_color="r", width=3
+    )
 
     plt.title(heap_choice)
     plt.savefig(f"{heap_choice}.png")
@@ -111,7 +97,7 @@ def sanity_check(heap_choice="Fibonacci", show=False):
     G.add_node("e")
     G.add_node("z")
 
-    nx.set_node_attributes(G, float('inf'), "key")
+    nx.set_node_attributes(G, float("inf"), "key")
     nx.set_node_attributes(G, None, "pred")
     nx.set_node_attributes(G, None, "node")
 
@@ -148,24 +134,33 @@ def dijkstra_time(G, source, target, heap):
     repeat = 3
     runs = 10
     times = []
+    cycles = []
 
     # Add Graph attrs
-    nx.set_node_attributes(G, float('inf'), "key")
+    nx.set_node_attributes(G, float("inf"), "key")
     nx.set_node_attributes(G, None, "pred")
     nx.set_node_attributes(G, None, "node")
 
     dijkstra_results = {}
     # Run Dijkstra's
-    for i in range(repeat):
+    for _ in range(repeat):
         t0 = time.time()
-        for j in range(runs):
+        c0 = count()
+        for _ in range(runs):
             dijkstra_results[G] = dijkstra_path_heaps(G, source, target, heap)
+        c1 = count_end()
         t1 = time.time()
         times.append(t1 - t0)
+        cycles.append(c1 - c0)
 
     # Get the results and pass them back
-    results = {"runs": runs, "repeat": repeat,
-               "avg_time": mean(times), "algo_res": dijkstra_results}
+    results = {
+        "runs": runs,
+        "repeat": repeat,
+        "avg_time": mean(times),
+        "avg_cycles": round(mean(cycles)),
+        "algo_res": dijkstra_results,
+    }
 
     return results
 
@@ -198,35 +193,39 @@ def performance_test():
     results = {}
     for heap_name in HEAPS:
         print(f"Running: {heap_name}")
-        run_info = {}
         run_list = []
         graph_count = 0
         for G in test_graphs:
+            run_info = {}
             source, target = get_search_nodes(G)
 
             # Run Dijktra
             run_info["time_info"] = dijkstra_time(
-                G, source, target, get_heap(heap_name))
+                G, source, target, get_heap(heap_name)
+            )
 
             # Record graph info
-            run_info['graph_info'] = {
+            run_info["graph_info"] = {
                 "graph_obj": G,
                 "graph_num": graph_count,
                 "num_nodes": G.number_of_nodes(),
-                "num_edges": G.number_of_edges()
+                "num_edges": G.number_of_edges(),
             }
 
-            print("graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, path_found = {}".format(
-                graph_count,
-                run_info["graph_info"]["num_nodes"],
-                run_info["graph_info"]["num_edges"],
-                run_info["time_info"]["avg_time"],
-                run_info["time_info"]["algo_res"][G]))
+            print(
+                "graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, avg_cycles: {}, path_found = {}".format(
+                    graph_count,
+                    run_info["graph_info"]["num_nodes"],
+                    run_info["graph_info"]["num_edges"],
+                    run_info["time_info"]["avg_time"],
+                    run_info["time_info"]["avg_cycles"],
+                    run_info["time_info"]["algo_res"][G],
+                )
+            )
 
             # Add the run info into list
             run_list.append(run_info)
             graph_count += 1
-            break
 
         print(f"Done running for each graph: {heap_name}")
         # Add the results
@@ -235,15 +234,43 @@ def performance_test():
     return results
 
 
-def report():
-    pass
+def report(results):
+    fields = ["num_nodes", "num_edges", "avg_time", "avg_cycles"]
+    rows = []
+    paths = []
+    for heap in results:
+        rows.append([heap])
+        rows.append(fields)
+        heap_data = results[heap]
+
+        paths.append([heap])
+        for run in heap_data:
+            graph_info = run["graph_info"]
+            num_nodes = graph_info["num_nodes"]
+            num_edges = graph_info["num_edges"]
+            avg_time = run["time_info"]["avg_time"]
+            avg_cycles = run["time_info"]["avg_cycles"]
+            rows.append([num_nodes, num_edges, avg_time, avg_cycles])
+            path = run["time_info"]["algo_res"].values()
+            for item in path:
+                paths.append(item)
+
+        rows.append([])
+        paths.append([])
+
+    with open("report.csv", "w") as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerows(rows)
+
+    with open("paths.csv", "w") as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerows(paths)
 
 
 if __name__ == "__main__":
 
     # Run a sanity check on single heap
-    #sanity_check("Violation", show=True)
-
+    # sanity_check("Fibonacci", show=True)
     # Run sanity checks for all heaps
     # smoke_tests(show=False)
 
@@ -252,4 +279,4 @@ if __name__ == "__main__":
     print("Finished!")
 
     # Record results into a csv and plot it
-    report()
+    report(results)
