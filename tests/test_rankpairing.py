@@ -53,10 +53,9 @@ def test_decrease_key(uut):
     uut.insert(67)
     uut.extract_min()
     uut.decrease_key(x, 3)
-    uut.decrease_key(x, 1)
-    assert uut.extract_min().key == 1  # extract x
-    uut.decrease_key(y, 8)
-    assert y.key == 8
+    assert uut.extract_min().key == 3  # extract x
+    uut.decrease_key(y, 3)
+    assert y.key == 3
 
 
 def test_decrease_key_greater(uut):

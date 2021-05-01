@@ -16,22 +16,23 @@ class RankPairingHeap(object):
     class HalfTree(object):
         ''' HalfTree class for internal nodes '''
 
-        uidc = itertools.count()  # unique ID counter for debug
+        # uidc = itertools.count()  # unique ID counter for debug
 
-        def __init__(self, key):
-            self.id = next(self.uidc)
-            self.key = key
+        def __init__(self, data: dict, name=None):
+            self.name = name
+            self.key = data['key']
             self.rank = 0
             self.next = self.prev = self.parent = self.left = self.right = None
+            self.data = data
 
         def __repr__(self):
             ''' debug representation '''
-            s = f'{self.id:^9}|{self.key:^9}|{self.rank:^9}'
-            s += f'|{self.parent.id:^9}' if self.parent else f'|{"-":^9}'
-            s += f'|{self.left.id:^9}' if self.left else f'|{"-":^9}'
-            s += f'|{self.right.id:^9}' if self.right else f'|{"-":^9}'
-            s += f'|{self.prev.id:^9}' if self.prev else f'|{"-":^9}'
-            s += f'|{self.next.id:^9}' if self.next else f'|{"-":^9}'
+            s = f'{self.name:^7}|{self.key:^7}|{self.rank:^7}'
+            s += f'||{self.parent.name:^9}' if self.parent else f'||{"-":^9}'
+            s += f'|{self.left.name:^9}' if self.left else f'|{"-":^9}'
+            s += f'|{self.right.name:^9}' if self.right else f'|{"-":^9}'
+            s += f'||{self.prev.name:^9}' if self.prev else f'||{"-":^9}'
+            s += f'|{self.next.name:^9}' if self.next else f'|{"-":^9}'
             return s
 
     def __init__(self):
@@ -39,9 +40,9 @@ class RankPairingHeap(object):
         self.min = None
         self.count = 0
 
-    def insert(self, key):
+    def insert(self, data: dict, name=None):
         ''' add singleton to root-list '''
-        node = RankPairingHeap.HalfTree(key)
+        node = RankPairingHeap.HalfTree(data, name)
 
         if self.count == 0:
             self.min = node.next = node.prev = node
@@ -51,15 +52,24 @@ class RankPairingHeap(object):
             self.min = node if self.min.key > node.key else self.min
 
         else:
-            if self.min.key > key:  # min-root
-                self.min.prev, node.prev, node.next = node, self.min.prev, self.min
-                node.prev.next = self.min = node
-            else:  # min-root.next
-                self.min.next, node.next, node.prev = node, self.min.next, self.min
-                node.next.prev = node
+            # always insert in 'first' position
+            node.prev, node.next = self.min.prev, self.min
+            node.prev.next, node.next.prev = node, node
+
+            # update min-root
+            if self.min.key > node.key:
+                self.min = node
 
         self.count += 1
         return node
+
+    def debug_check_loop(self, node=None):
+        node, seen = self.min.next, []
+        while node != self.min:
+            if node in seen:  # loop exists without touching self.min again
+                self.show(verbose=True, node=node)
+            seen.append(node)
+            node = node.next
 
     def _show_bfs(self, root):
         ''' traverse half-tree using breadth first search '''
@@ -68,8 +78,11 @@ class RankPairingHeap(object):
 
         queue = [root]
         while(len(queue) > 0):
-            print(queue[0])
             node = queue.pop(0)
+            if node == self.min:
+                print(' * '*25)
+
+            print(node)
             if node.left is not None:
                 queue.append(node.left)
             if node.right is not None:
@@ -77,18 +90,26 @@ class RankPairingHeap(object):
 
         print('-'*80)
 
-    def show(self, verbose=False):
+    def show(self, verbose=False, node=None):
         ''' debug print utility - verbose prints all half trees '''
         if self.count == 0:
             raise ValueError('RankPairingHeap empty')
 
         if verbose:
+            if node:
+                print(f'\nnode decreased - {node}')
+            print(f'minimum root - {self.min}\n')
+
             print(
-                f'{"id":^9}|{"key":^9}|{"rank":^9}|{"parent":^9}|{"left":^9}|{"right":^9}|{"prev":^9}|{"next":^9}')
+                f'{"id":^7}|{"key":^7}|{"rank":^7}||{"parent":^9}|{"left":^9}|{"right":^9}||{"prev":^9}|{"next":^9}\n' + '-'*80)
             self._show_bfs(self.min)
-            node = self.min.next
+            node, seen = self.min.next, []
             while node != self.min:
                 self._show_bfs(node)
+                if node.name in seen:
+                    raise RuntimeError(
+                        f'\nLast fn call caused min to be skipped:\n{self.min}\n')
+                seen.append(node.name)
                 node = node.next
         else:
             node = self.min.next
@@ -127,6 +148,9 @@ class RankPairingHeap(object):
         rankdict = defaultdict(lambda: [])
 
         node = self.min.next
+        if node == self.min:
+            return
+
         while node != self.min:
             rankdict[node.rank].append(node)
             node = node.next
@@ -142,7 +166,10 @@ class RankPairingHeap(object):
                     sm, lg = lg, sm
 
                 sm.left, lg.right, lg.parent = lg, sm.left, sm
-                lg.prev.next, lg.next.prev = lg.next, lg.prev
+                if lg.right:
+                    lg.right.parent = lg
+                lg.prev.next = lg.next
+                lg.next.prev = lg.prev
                 lg.next = lg.prev = None
                 sm.rank += 1
 
@@ -153,45 +180,35 @@ class RankPairingHeap(object):
 
     def extract_min(self):
         ''' pop minimum key vertex and return key '''
+
         if self.count == 0:
             raise ValueError('Cannot extract_min: RankPairingHeap is empty')
 
-        oldmin = self.min
+        min_node = self.min  # store old min
 
-        if self.count == 1:
+        if self.count == 1:  # now will have zero elements in heap
             self.min, self.count = None, 0
-            return oldmin
+            return min_node
 
         ''' add right spine to root-list '''
         node = self.min.left
         while node:
-            node.parent = None
-            self.min.next, node.next = node, self.min.next
-            node.prev, node.next.prev = self.min, node
-            newnode = node.right
-            node.right = None
-            node = newnode
+            node.parent, right = None, node.right # set parent as none and store R-child
+            node.prev, node.next = self.min, self.min.next
+            node.prev.next = node.next.prev = node  # node.prev.next = self.min.next
+            node.right, node = None, right  # correct right and set next node
 
-        ''' find new min in root-list and unlink old '''
-        node, newdistance = self.min.next, float('inf')
-        if node == self.min:  # only min in rootlist
-            node = newmin = self.min.left
+        self.show(verbose=True)
 
-        while node != self.min:
-            if node.key < newdistance:
-                newmin = node
-                newdistance = node.key
-            node = node.next
-
-        ''' unlink and reassign self.min to node in root-list '''
+        ''' unlink self.min and assign to next element '''
         self.min.next.prev, self.min.prev.next = self.min.prev, self.min.next
-        self.min = newmin
+        self.min = self.min.next
 
         ''' compress and decrement count '''
         self._compress()
         self.count -= 1
 
-        return oldmin
+        return min_node
 
     def decrease_key(self, node, key):
         ''' decrement specified node.key absolutely to key '''
@@ -204,36 +221,55 @@ class RankPairingHeap(object):
 
         node.key = key
 
-        ''' remove node and Lchild to new half-tree & replace in parent with node Rchild '''
+        ''' remove node and L-child to new half-tree & replace in parent with node R-child '''
         if node.parent:
-            node.parent.left = node.right
-            node.right = None
-        else:  # in root-list - just update min without relinking
+            if node.parent.left == node:
+                node.parent.left = node.right
+                if node.right:
+                    node.right.parent = node.parent
+                node.right = None  # remove right child
+
+            elif node.parent.right == node:
+                node.parent.right = node.right
+                if node.right:
+                    node.right.parent = node.parent
+                node.right = None
+        else:  # in root-list - update min without relinking
             if self.min.key > node.key:
                 self.min = node
-                return
+            return
 
-        ''' relink and update min '''
-        if self.min.key > key:  # min-root
-            node.prev, node.next = self.min.prev, self.min
-            self.min.prev = self.min = node
-            node.prev.next = node.next.prev = node
-        else:  # min-root.next
-            node.prev.next = node.next
-            node.next, node.prev = self.min.next, self.min
-            self.min.next = node.next.prev = node
+        ''' relink second position in root list '''
+        node.next, node.prev = self.min.next, self.min
+        # if not node.next or not node.prev:
+        #     print(self.min)
+        #     self.show(verbose=True)
+        node.next.prev = node.prev.next = node
+
+        # self.debug_check_loop(node)
+
+        ''' update min '''
+        if self.min.key > node.key:
+            self.min = node
 
         ''' update ranks for previous tree '''
         p = node.parent
         node.parent = None
+
         while p:
-            if not p.left and not p.right:  # leaf
+            if not p.left and not p.right:  # leaf - no children
                 p.rank = 0
+
             elif not p.parent:  # root
                 if p.left:
                     p.rank = p.left.rank + 1
-                break
-            else:
+
+            elif not p.left:
+                p.rank = p.right.rank
+            elif not p.right:  # has only one child
+                p.rank = p.left.rank
+
+            else:  # must have both children
                 if abs(p.left.rank - p.right.rank) > 1:
                     p.rank = max(p.left.rank, p.right.rank)
                 else:
