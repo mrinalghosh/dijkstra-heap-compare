@@ -5,7 +5,7 @@ import time
 import networkx as nx
 import matplotlib.pyplot as plt
 import csv
-from hwcounter import count, count_end
+# from hwcounter import count, count_end
 
 from statistics import mean
 from test_graphs.graph_generator import *
@@ -131,7 +131,7 @@ def dijkstra_time(G, source, target, heap):
     repeat = 3
     runs = 10
     times = []
-    cycles = []
+    # cycles = []
 
     # Add Graph attrs
     nx.set_node_attributes(G, float("inf"), "key")
@@ -142,20 +142,20 @@ def dijkstra_time(G, source, target, heap):
     # Run Dijkstra's
     for _ in range(repeat):
         t0 = time.time()
-        c0 = count()
+        # c0 = count()
         for _ in range(runs):
             dijkstra_results[G] = dijkstra_path_heaps(G, source, target, heap)
-        c1 = count_end()
+        # c1 = count_end()
         t1 = time.time()
         times.append(t1 - t0)
-        cycles.append(c1 - c0)
+        # cycles.append(c1 - c0)
 
     # Get the results and pass them back
     results = {
         "runs": runs,
         "repeat": repeat,
         "avg_time": mean(times),
-        "avg_cycles": round(mean(cycles)),
+        # "avg_cycles": round(mean(cycles)),
         "algo_res": dijkstra_results,
     }
 
@@ -210,12 +210,13 @@ def performance_test():
             }
 
             print(
-                "graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, avg_cycles: {}, path_found = {}".format(
+                # "graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, avg_cycles: {}, path_found = {}".format(
+                "graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, path_found = {}".format(
                     graph_count,
                     run_info["graph_info"]["num_nodes"],
                     run_info["graph_info"]["num_edges"],
                     run_info["time_info"]["avg_time"],
-                    run_info["time_info"]["avg_cycles"],
+                    # run_info["time_info"]["avg_cycles"],
                     run_info["time_info"]["algo_res"][G],
                 )
             )
@@ -232,7 +233,8 @@ def performance_test():
 
 
 def report(results):
-    fields = ["num_nodes", "num_edges", "avg_time", "avg_cycles"]
+    # fields = ["num_nodes", "num_edges", "avg_time", "avg_cycles"]
+    fields = ["num_nodes", "num_edges", "avg_time"]
     rows = []
     paths = []
     for heap in results:
@@ -246,8 +248,9 @@ def report(results):
             num_nodes = graph_info["num_nodes"]
             num_edges = graph_info["num_edges"]
             avg_time = run["time_info"]["avg_time"]
-            avg_cycles = run["time_info"]["avg_cycles"]
-            rows.append([num_nodes, num_edges, avg_time, avg_cycles])
+            # avg_cycles = run["time_info"]["avg_cycles"]
+            # rows.append([num_nodes, num_edges, avg_time, avg_cycles])
+            rows.append([num_nodes, num_edges, avg_time])
             path = run["time_info"]["algo_res"].values()
             for item in path:
                 paths.append(item)
