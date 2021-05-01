@@ -1,13 +1,10 @@
-""" Violation Heap Unit Tests"""
-
 import pytest
-from heaps.violation import ViolationHeap
+from heaps import minheap
 
-
-# Empty Violation Heap for test functions
+# Set up an empty MinHeap for test functions
 @pytest.fixture
 def uut():
-    return ViolationHeap()
+    return minheap.MinHeap()
 
 
 def test_insert(uut):
@@ -15,14 +12,6 @@ def test_insert(uut):
     test_node = uut.insert(node, node["value"])
     assert test_node.key == 5
     assert test_node.name == "apples"
-
-
-def test_insert_count(uut):
-    uut.insert({"key": 8})
-    uut.insert({"key": 7})
-    uut.insert({"key": -9})
-    uut.insert({"key": 4})
-    assert uut.count == 4
 
 
 def test_find_min(uut):

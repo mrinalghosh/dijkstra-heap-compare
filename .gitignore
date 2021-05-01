@@ -3,4 +3,5 @@ __pycache__/
 .pytest_cache
 .vs/
 .vscode/
-*.pyc
+paths.csv
+report.csv
