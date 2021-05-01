@@ -1,0 +1,6 @@
+### Dijkstra Heap Compare Requirements ###
+hwcounter
+matplotlib
+networkx
+pytest
+numpy
