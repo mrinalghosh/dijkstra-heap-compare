@@ -5,6 +5,7 @@ import time
 import networkx as nx
 import matplotlib.pyplot as plt
 import csv
+from hwcounter import count, count_end
 
 from statistics import mean
 from test_graphs.graph_generator import *
@@ -12,7 +13,8 @@ from heaps.fibonacci import FibHeap
 from heaps.violation import ViolationHeap
 from heaps.quake import QuakeHeap
 from heaps.minheap import MinHeap
-# from heaps.rankparing import RankPairingHeap
+
+# from heaps.rankpairing import RankPairingHeap
 
 
 HEAPS = ["Quake", "Fibonacci", "Violation", "MinHeap"]
@@ -28,8 +30,8 @@ def get_heap(heap_choice):
         heap = MinHeap()
     elif heap_choice == "Quake":
         heap = QuakeHeap()
-    elif heap_choice == "RankPairing":
-        heap = RankPairingHeap()
+    # elif heap_choice == "RankPairing":
+    #     heap = RankPairingHeap()
 
     return heap
 
@@ -129,6 +131,7 @@ def dijkstra_time(G, source, target, heap):
     repeat = 3
     runs = 10
     times = []
+    cycles = []
 
     # Add Graph attrs
     nx.set_node_attributes(G, float("inf"), "key")
@@ -137,18 +140,22 @@ def dijkstra_time(G, source, target, heap):
 
     dijkstra_results = {}
     # Run Dijkstra's
-    for i in range(repeat):
+    for _ in range(repeat):
         t0 = time.time()
-        for j in range(runs):
+        c0 = count()
+        for _ in range(runs):
             dijkstra_results[G] = dijkstra_path_heaps(G, source, target, heap)
+        c1 = count_end()
         t1 = time.time()
         times.append(t1 - t0)
+        cycles.append(c1 - c0)
 
     # Get the results and pass them back
     results = {
         "runs": runs,
         "repeat": repeat,
         "avg_time": mean(times),
+        "avg_cycles": round(mean(cycles)),
         "algo_res": dijkstra_results,
     }
 
@@ -203,11 +210,12 @@ def performance_test():
             }
 
             print(
-                "graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, path_found = {}".format(
+                "graph: {}, num_nodes: {}, num_edges: {}, avg_time: {}, avg_cycles: {}, path_found = {}".format(
                     graph_count,
                     run_info["graph_info"]["num_nodes"],
                     run_info["graph_info"]["num_edges"],
                     run_info["time_info"]["avg_time"],
+                    run_info["time_info"]["avg_cycles"],
                     run_info["time_info"]["algo_res"][G],
                 )
             )
@@ -224,23 +232,36 @@ def performance_test():
 
 
 def report(results):
-    fields = ["num_nodes", "num_edges", "avg_time"]
+    fields = ["num_nodes", "num_edges", "avg_time", "avg_cycles"]
     rows = []
+    paths = []
     for heap in results:
         rows.append([heap])
         rows.append(fields)
         heap_data = results[heap]
+
+        paths.append([heap])
         for run in heap_data:
             graph_info = run["graph_info"]
             num_nodes = graph_info["num_nodes"]
             num_edges = graph_info["num_edges"]
             avg_time = run["time_info"]["avg_time"]
-            rows.append([num_nodes, num_edges, avg_time])
+            avg_cycles = run["time_info"]["avg_cycles"]
+            rows.append([num_nodes, num_edges, avg_time, avg_cycles])
+            path = run["time_info"]["algo_res"].values()
+            for item in path:
+                paths.append(item)
+
         rows.append([])
+        paths.append([])
 
     with open("report.csv", "w") as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerows(rows)
+
+    with open("paths.csv", "w") as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerows(paths)
 
 
 if __name__ == "__main__":
